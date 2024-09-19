@@ -62,7 +62,7 @@ sh idf.py monitor
 
 sh pip install esptool
 2. Скачайте бинарный файл прошивки:
-    - [Скачать файл прошивки](http://84.252.143.212:5100/download/esp32c3_test.bin)
+    - [Скачать файл прошивки](http://84.252.143.212:5100/download/esp32c3_http.bin)
 
 3. Подключите вашу плату ESP32-C6 к компьютеру через USB.
 
