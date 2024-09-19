@@ -7,5 +7,5 @@ project(esp32c3_http)
 
 # Убедитесь, что путь к компонентам указан правильно
 list(APPEND EXTRA_COMPONENT_DIRS components/protocol_examples_common)
+list(APPEND EXTRA_COMPONENT_DIRS components/espressif__led_strip)
 list(APPEND EXTRA_COMPONENT_DIRS components/esp-tls)
-

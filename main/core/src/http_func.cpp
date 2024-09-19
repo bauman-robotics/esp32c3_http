@@ -3,17 +3,20 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_http_client.h"
-#include <string>
-
+//============
 #include "ping/ping_sock.h"
 #include "lwip/inet.h"
 #include "esp_tls.h"
+//============
+#include <string>
+//============
 #include "defines.h"
 #include "def_pass.h"
-
+#include "http_func.h"
+//======================================================================
 #define SERIAL_PRINT_DEBUG_EN (1)
 
-static const char *TAG = "example";
+extern const char *TAG;
 
 // Replace with your network credentials
 const char* ssid       = SSID; 
@@ -26,9 +29,6 @@ const char* serverName = SERVER_NAME;
 std::string user_id       = "Andrey";
 std::string user_location = "Home";
 std::string apiKeyValue   = API_KEY;
-int cold = -1;
-int hot = -1;
-int alarm_interval   = 200; // 200 - 2 min, 00 sec
 
 char buf_cold[80];
 char buf_hot[80];
@@ -183,7 +183,7 @@ void wifi_init_sta(void) {
 }
 //=====================================================================================
 
-static void wait_for_ip() {
+void wait_for_ip() {
     esp_netif_ip_info_t ip_info;
     esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
     if (netif) {
@@ -200,25 +200,3 @@ static void wait_for_ip() {
         ESP_LOGE(TAG, "Failed to get network interface handle");
     }
 }
-//=====================================================================================
-
-extern "C" void app_main(void) {
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    nvs_flash_init();
-    wifi_init_sta();
-    wait_for_ip();
-
-    cold = 25; // Example value
-    hot = 30;  // Example value
-    //send_post_request(cold, hot, alarm_interval);
-    
-    // Add ping test
-    //ping_test("84.252.143.212");
-    //ping_test("77.88.44.55");
-    //ping_test("192.168.75.221");
-
-    send_post_request(cold, hot, alarm_interval);
-    
-}
-
-
