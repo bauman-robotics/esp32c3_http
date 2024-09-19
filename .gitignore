@@ -1,0 +1,46 @@
+# Object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+*.elf
+*.bin
+*.dylib
+*.dll
+*.so
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.mod
+*.cmd
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Pass file 
+def_pass.h
+
+# Build directories
+build/
