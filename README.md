@@ -33,7 +33,7 @@
 
 3. Склонируйте репозиторий:
 
-sh git clone https://github.com/bauman-robotics/esp32c3_test.git cd esp32c3_test
+sh git clone https://github.com/bauman-robotics/esp32c3_http cd esp32c3_test
 4. Откройте проект в Visual Studio Code:
 
 sh code .
