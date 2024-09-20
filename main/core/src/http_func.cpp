@@ -13,6 +13,23 @@
 #include "defines.h"
 #include "def_pass.h"
 #include "http_func.h"
+//============
+
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_system.h"
+#include "lwip/err.h"
+#include "lwip/sys.h"
+//============
+
+static EventGroupHandle_t s_wifi_event_group;
+
+#define WIFI_CONNECTED_BIT BIT0
+#define WIFI_FAIL_BIT      BIT1
+
+static int s_retry_num = 0;
+#define MAX_RETRY 5
 //======================================================================
 #define SERIAL_PRINT_DEBUG_EN (1)
 
@@ -55,7 +72,6 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
         case HTTP_EVENT_ON_DATA:
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
-                // Write out data
                 printf("%.*s", evt->data_len, (char*)evt->data);
             }
             break;
@@ -65,11 +81,6 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
             int mbedtls_err = 0;
-            //esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
-            // if (err != 0) {
-            //     ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
-            //     ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
-            // }
             break;
     }
     return ESP_OK;
@@ -113,6 +124,91 @@ void send_post_request(int cold, int hot, int alarm_interval) {
     esp_http_client_cleanup(client);
 }
 //=====================================================================================
+
+static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+        esp_wifi_connect();
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        if (s_retry_num < MAX_RETRY) {
+            esp_wifi_connect();
+            s_retry_num++;
+            ESP_LOGI(TAG, "retry to connect to the AP");
+        } else {
+            xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
+        }
+        ESP_LOGI(TAG, "connect to the AP fail");
+    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        s_retry_num = 0;
+        xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+    }
+}
+//=====================================================================================
+
+void wifi_init_sta(void) {
+    s_wifi_event_group = xEventGroupCreate();
+
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_sta();
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    esp_event_handler_instance_t instance_any_id;
+    esp_event_handler_instance_t instance_got_ip;
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL, &instance_any_id));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL, &instance_got_ip));
+
+    wifi_config_t wifi_config;
+    memset(&wifi_config, 0, sizeof(wifi_config)); // Обнуление структуры
+    strcpy(reinterpret_cast<char*>(wifi_config.sta.ssid), SSID);
+    strcpy(reinterpret_cast<char*>(wifi_config.sta.password), WIFI_PAS);
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config)); // Исправлено: WIFI_IF_STA вместо ESP_IF_WIFI_STA
+    ESP_ERROR_CHECK(esp_wifi_start());
+
+    ESP_LOGI(TAG, "wifi_init_sta finished.");
+
+    EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT | WIFI_FAIL_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
+
+    if (bits & WIFI_CONNECTED_BIT) {
+        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s", wifi_config.sta.ssid, wifi_config.sta.password);
+    } else if (bits & WIFI_FAIL_BIT) {
+        ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s", wifi_config.sta.ssid, wifi_config.sta.password);
+    } else {
+        ESP_LOGE(TAG, "UNEXPECTED EVENT");
+    }
+
+    ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
+    ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
+    vEventGroupDelete(s_wifi_event_group);
+}
+//=====================================================================================
+
+// void wifi_init_sta(void) {
+//     esp_netif_init();
+//     esp_event_loop_create_default();
+//     esp_netif_create_default_wifi_sta();
+//     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+//     esp_wifi_init(&cfg);
+//     esp_wifi_set_mode(WIFI_MODE_STA);
+//     wifi_config_t wifi_config = {};
+//     strcpy((char*)wifi_config.sta.ssid, ssid);
+//     strcpy((char*)wifi_config.sta.password, password);
+//     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+//     esp_wifi_start();
+//     esp_wifi_connect();
+// }
+
+
+//=====================================================================================
+
+
+
 
 void ping_test(const char* target) {
     ip4_addr_t target_addr;
@@ -167,36 +263,21 @@ void ping_test(const char* target) {
 }
 //=====================================================================================
 
-void wifi_init_sta(void) {
-    esp_netif_init();
-    esp_event_loop_create_default();
-    esp_netif_create_default_wifi_sta();
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    esp_wifi_init(&cfg);
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    wifi_config_t wifi_config = {};
-    strcpy((char*)wifi_config.sta.ssid, ssid);
-    strcpy((char*)wifi_config.sta.password, password);
-    esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
-    esp_wifi_start();
-    esp_wifi_connect();
-}
-//=====================================================================================
 
-void wait_for_ip() {
-    esp_netif_ip_info_t ip_info;
-    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
-    if (netif) {
-        while (true) {
-            esp_netif_get_ip_info(netif, &ip_info);
-            if (ip_info.ip.addr != IPADDR_ANY) {
-                ESP_LOGI(TAG, "Got IP Address: " IPSTR, IP2STR(&ip_info.ip));
-                break;
-            }
-            ESP_LOGI(TAG, "Waiting for IP...");
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-        }
-    } else {
-        ESP_LOGE(TAG, "Failed to get network interface handle");
-    }
-}
+// void wait_for_ip() {
+//     esp_netif_ip_info_t ip_info;
+//     esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+//     if (netif) {
+//         while (true) {
+//             esp_netif_get_ip_info(netif, &ip_info);
+//             if (ip_info.ip.addr != IPADDR_ANY) {
+//                 ESP_LOGI(TAG, "Got IP Address: " IPSTR, IP2STR(&ip_info.ip));
+//                 break;
+//             }
+//             ESP_LOGI(TAG, "Waiting for IP...");
+//             vTaskDelay(1000 / portTICK_PERIOD_MS);
+//         }
+//     } else {
+//         ESP_LOGE(TAG, "Failed to get network interface handle");
+//     }
+// }
