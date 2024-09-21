@@ -75,7 +75,7 @@ void blink_led(void)
 }
 //===============================================================
 
-int calc_sine_data(bool send_uart)
+int32_t calc_sine_post_data()
 {
     static uint32_t s_time = 0;
 
@@ -83,13 +83,35 @@ int calc_sine_data(bool send_uart)
     float t = (float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * 2 * M_PI;
     int32_t sine_value = (int32_t)((sin(t) * (AMPLITUDE / 2)) + (AMPLITUDE / 2));
 
-    if (send_uart) {
-        // Log the sine value
-        ESP_LOGI(TAG, "data %" PRId32, sine_value);
-    }
+    s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
+
+    return sine_value;
+}
+//===============================================================
+
+int32_t calc_sine_uart_data()
+{
+    static uint32_t s_time = 0;
+
+    // Calculate the current time position in the cycle
+    float t = (float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * 2 * M_PI;
+    int32_t sine_value = (int32_t)((sin(t) * (AMPLITUDE / 2)) + (AMPLITUDE / 2));
 
     s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
 
     return sine_value;
 }
 //===============================================================
+
+int32_t calc_sine_socket_data()
+{
+    static uint32_t s_time = 0;
+
+    // Calculate the current time position in the cycle
+    float t = (float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * 2 * M_PI;
+    int32_t sine_value = (int32_t)((sin(t) * (AMPLITUDE / 2)) + (AMPLITUDE / 2));
+
+    s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
+
+    return sine_value;
+}

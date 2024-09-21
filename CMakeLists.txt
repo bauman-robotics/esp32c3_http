@@ -9,3 +9,6 @@ project(esp32c3_http)
 list(APPEND EXTRA_COMPONENT_DIRS components/protocol_examples_common)
 list(APPEND EXTRA_COMPONENT_DIRS components/espressif__led_strip)
 list(APPEND EXTRA_COMPONENT_DIRS components/esp-tls)
+
+# set(EXTRA_COMPONENT_DIRS components)
+

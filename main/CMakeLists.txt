@@ -2,7 +2,9 @@ idf_component_register(
     SRCS 
        "core/src/main.cpp" 
        "core/src/http_func.cpp"
-       "core/src/led_blink.cpp"       
+       "core/src/led_blink.cpp"  
+       "core/src/debug_func.cpp"         
+       "core/src/web_socket.cpp"  
     INCLUDE_DIRS 
         "core/inc"
 )

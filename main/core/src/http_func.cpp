@@ -40,19 +40,13 @@ const char* ssid       = SSID;
 const char* password   = WIFI_PAS; 
 const char* serverName = SERVER_NAME;
 
-// Keep this API Key value to be compatible with the PHP code provided in the project page. 
-// If you change the apiKeyValue value, the PHP file /post-esp-data.php also needs to have the same key 
-
 std::string user_id       = "Andrey";
 std::string user_location = "Home";
 std::string apiKeyValue   = API_KEY;
 
-char buf_cold[80];
-char buf_hot[80];
-
-unsigned long wakeUpTime;
-time_t now; 
-struct tm timeinfo;
+// unsigned long wakeUpTime;
+// time_t now; 
+// struct tm timeinfo;
 //=====================================================================================
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
@@ -189,27 +183,6 @@ void wifi_init_sta(void) {
 }
 //=====================================================================================
 
-// void wifi_init_sta(void) {
-//     esp_netif_init();
-//     esp_event_loop_create_default();
-//     esp_netif_create_default_wifi_sta();
-//     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-//     esp_wifi_init(&cfg);
-//     esp_wifi_set_mode(WIFI_MODE_STA);
-//     wifi_config_t wifi_config = {};
-//     strcpy((char*)wifi_config.sta.ssid, ssid);
-//     strcpy((char*)wifi_config.sta.password, password);
-//     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
-//     esp_wifi_start();
-//     esp_wifi_connect();
-// }
-
-
-//=====================================================================================
-
-
-
-
 void ping_test(const char* target) {
     ip4_addr_t target_addr;
     inet_aton(target, &target_addr); // Преобразует строку в IP-адрес и сохраняет его в структуре
@@ -263,21 +236,3 @@ void ping_test(const char* target) {
 }
 //=====================================================================================
 
-
-// void wait_for_ip() {
-//     esp_netif_ip_info_t ip_info;
-//     esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
-//     if (netif) {
-//         while (true) {
-//             esp_netif_get_ip_info(netif, &ip_info);
-//             if (ip_info.ip.addr != IPADDR_ANY) {
-//                 ESP_LOGI(TAG, "Got IP Address: " IPSTR, IP2STR(&ip_info.ip));
-//                 break;
-//             }
-//             ESP_LOGI(TAG, "Waiting for IP...");
-//             vTaskDelay(1000 / portTICK_PERIOD_MS);
-//         }
-//     } else {
-//         ESP_LOGE(TAG, "Failed to get network interface handle");
-//     }
-// }

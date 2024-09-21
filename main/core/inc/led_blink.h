@@ -3,4 +3,8 @@
 
 void configure_led(void);
 void blink_led(void);
-int calc_sine_data(bool send_uart);
+
+int32_t calc_sine_uart_data();
+int32_t calc_sine_post_data();
+int32_t calc_sine_socket_data();
+
