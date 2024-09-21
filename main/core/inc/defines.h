@@ -10,7 +10,7 @@
 //=== T-me Params =================
 #define UART_SIN_SEND_PERIOD_MS  (10)
 #define POST_REQUEST_PERIOD_MS (3000)
-#define SOCKET_SEND_PERIOD_MS    (10)
+#define SOCKET_SEND_PERIOD_MS   (100)
 
 //=== SOCKET Params ===============
 
