@@ -3,9 +3,9 @@
 //=== Mode ========================
 
 #define LED_BLINK_ENABLE
-#define SEND_UART_SIN_ENABLE
+//#define SEND_UART_SIN_ENABLE
 //#define POST_REQUEST_ENABLE
-//#define SOCKET_CLIENT_ENABLE
+#define SOCKET_CLIENT_ENABLE
 
 //=== T-me Params =================
 #define UART_SIN_SEND_PERIOD_MS  (10)
