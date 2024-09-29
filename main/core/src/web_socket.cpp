@@ -222,8 +222,12 @@ void socket_task(void *pvParameters) {
                 int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
                 if (len < 0) {
                     ESP_LOGE(TAG, "recv failed: errno %d", errno);
-                    break;  // Выход из внутреннего цикла и попытка переподключения
-                } else {
+                    //break;  // Выход из внутреннего цикла и попытка переподключения
+                } 
+                else if (len == 0) {
+                    ESP_LOGE(TAG, "recv len == 0");
+                }
+                else {
                     rx_buffer[len] = 0;
                     ESP_LOGI(TAG, "Received %d bytes: %s", len, rx_buffer);
                 }
