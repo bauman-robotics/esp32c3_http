@@ -9,6 +9,8 @@
 #include "led_strip.h"
 #include "sdkconfig.h"
 
+#include "variables.h"
+#include "main.h"
 //=================================
 extern const char *TAG;
 
@@ -23,8 +25,16 @@ extern const char *TAG;
 static uint8_t s_led_state = 1;
 static led_strip_handle_t led_strip;
 
+variables var; 
+
 void configure_led(void)
-{
+{    
+    var.leds.red = 1;
+    var.leds.green = 0; 
+    var.leds.blue = 0;
+
+    var.leds.flags = LEDS_NO_CONNECT_STATE;
+
     ESP_LOGI(TAG, "Example configured to blink addressable LED!");
     /* LED strip initialization with the GPIO and pixels number */
     led_strip_config_t strip_config = {
@@ -63,8 +73,37 @@ void blink_led(void)
 
         uint8_t r = (uint8_t)round(brightness);
 
+        uint8_t red_value = 0;
+        uint8_t green_value = 1;
+        uint8_t blue_value = 0;
+
+        switch (var.leds.flags) {
+            case LEDS_NO_CONNECT_STATE:
+
+                red_value = MAX_BRIGHTNESS;
+                green_value = 0;
+                blue_value = 0;
+                
+                break;
+            case LEDS_GOT_IP_STATE:
+                red_value = 0;
+                green_value = MAX_BRIGHTNESS;
+                blue_value = 0;
+
+                break;
+            case LEDS_CONNECT_TO_SERVER_STATE:
+                // Умножаем булевые значения на r и преобразуем в uint8_t
+                red_value   = (uint8_t)(var.leds.red   * r);
+                green_value = (uint8_t)(var.leds.green * r);
+                blue_value  = (uint8_t)(var.leds.blue  * r);
+
+                break; 
+        }
+
         /* Set the LED pixel using RGB values */
-        led_strip_set_pixel(led_strip, 0, r, 0, 0);
+        //led_strip_set_pixel(led_strip, 0, r, 0, 0);
+
+        led_strip_set_pixel(led_strip, 0, green_value,  red_value, blue_value );
         /* Refresh the strip to send data */
         led_strip_refresh(led_strip);
     } else {
