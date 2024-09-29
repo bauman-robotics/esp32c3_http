@@ -2,7 +2,7 @@ dependencies:
   espressif/led_strip:
     dependencies: []
     source:
-      path: /home/andrey/projects/esp32/git/esp32c3_http/components/espressif__led_strip
+      path: /home/ypc/projects/esp32c3_http/components/espressif__led_strip
       type: local
     version: 2.5.5
   idf:
