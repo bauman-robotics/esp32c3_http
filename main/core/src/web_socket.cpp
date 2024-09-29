@@ -25,6 +25,8 @@ int calc_sine_socket_data();
 static char buf[80] ={0};
 static int sin_data_s;
 
+
+
 // void socket_task(void *pvParameters) {
 //     #ifdef RECEIVE_ANSWER_ENABLE   
 //         char rx_buffer[128];
