@@ -1,4 +1,5 @@
 #pragma once
+#include "main.h"
 
 //=== Mode ========================
 
@@ -11,12 +12,20 @@
 #define UART_SIN_SEND_PERIOD_MS  (10)
 #define POST_REQUEST_PERIOD_MS (3000)
 #define SOCKET_SEND_PERIOD_MS    (10)
+//=========================================
 
-//=== SOCKET Params ===============
+//=== Выберите целевой сервер ===
+#define DEST_SERVER  (SERVER_YPC)
+//#define DEST_SERVER (SERVER_LENOVO_UNDER_MOBILE_NET)
+//#define DEST_SERVER (SERVER_LENOVO_UNDER_XIAOMI)
+//#define DEST_SERVER (SERVER_LENOVO_HOT_SPOT)
+//===============================
 
-#define SOCKET_IP   ("192.168.75.97") // lenovo br mobile net 
-//#define SOCKET_IP   ("192.168.31.242")  // home ypc
+//=== Выбор порта подключения === 
 #define SOCKET_PORT (18082)
+
+//========================================
+
 
 //#define RECEIVE_ANSWER_ENABLE 
 //=================================
