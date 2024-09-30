@@ -36,86 +36,8 @@ static int sin_data_s;
 void socket_task(void *pvParameters);
 void Pars_Socket_Data(char * rx_buf);
 
-//===============================================================
 
-// void socket_task(void *pvParameters) {
-//     #ifdef RECEIVE_ANSWER_ENABLE   
-//         char rx_buffer[128];
-//     #endif 
-//     char addr_str[128];
-//     int addr_family;
-//     int ip_protocol;
-
-//     while (1) {
-//         struct sockaddr_in dest_addr;
-//         dest_addr.sin_addr.s_addr = inet_addr(SOCKET_IP);
-//         dest_addr.sin_family = AF_INET;
-//         dest_addr.sin_port = htons(SOCKET_PORT);
-//         addr_family = AF_INET;
-//         ip_protocol = IPPROTO_IP;
-//         inet_ntoa_r(dest_addr.sin_addr, addr_str, sizeof(addr_str) - 1);
-
-//         int sock = socket(addr_family, SOCK_STREAM, ip_protocol);
-//         //int sock = socket(addr_family, SOCK_DGRAM, ip_protocol);
-        
-//         if (sock < 0) {
-//             ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
-//             vTaskDelay(5000 / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
-//             continue;  // Продолжить цикл, чтобы попытаться снова
-//         }
-//         ESP_LOGI(TAG, "Socket created, connecting to %s:%d", SOCKET_IP, SOCKET_PORT);
-
-//         int err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-//         if (err != 0) {
-//             ESP_LOGE(TAG, "Socket unable to connect: errno %d", errno);
-//             close(sock);  // Закрыть сокет перед повторной попыткой
-//             vTaskDelay(5000 / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
-//             continue;  // Продолжить цикл
-//         }
-//         ESP_LOGI(TAG, "Successfully connected");
-
-//         while (1) {
-//             // Генерация данных для отправки
-//             sin_data_s = calc_sine_socket_data();
-//             sprintf(buf, "data %d", sin_data_s);
-
-//             int err = send(sock, buf, strlen(buf), 0);       
-//             if (err < 0) {
-//                 ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-//                 break;  // Выход из внутреннего цикла и попытка переподключения
-//             } else {
-//                 ESP_LOGI(TAG, "send %s", buf);
-//             }
-
-//             #ifdef RECEIVE_ANSWER_ENABLE
-//                 int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
-//                 if (len < 0) {
-//                     ESP_LOGE(TAG, "recv failed: errno %d", errno);
-//                     //break;  // Выход из внутреннего цикла и попытка переподключения
-//                 } 
-//                 else if (len == 0) {
-//                     ESP_LOGE(TAG, "recv len == 0");
-//                 }
-//                 else {
-//                     rx_buffer[len] = 0;
-//                     ESP_LOGI(TAG, "Received %d bytes: %s", len, rx_buffer);
-//                 }
-//             #endif 
-
-//             vTaskDelay(SOCKET_SEND_PERIOD_MS / portTICK_PERIOD_MS);
-//         }
-
-//         if (sock != -1) {
-//             ESP_LOGE(TAG, "Shutting down socket and retrying...");
-//             shutdown(sock, 0);
-//             close(sock);
-//         }
-
-//         vTaskDelay(5000 / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
-//     }
-// }
-
-//=== асинхронное чтение ===================================================================================
+//=== Отправка пакетов и Асинхронное чтение ===================================================================================
 
 void socket_task(void *pvParameters) {
 
@@ -190,7 +112,7 @@ void socket_task(void *pvParameters) {
                 ESP_LOGI(TAG, "> %s", buf);
             }
 
-            vTaskDelay(SOCKET_SEND_PERIOD_MS / portTICK_PERIOD_MS);
+            vTaskDelay(var.per_value / portTICK_PERIOD_MS);
             //======================================================================
         }
 
@@ -206,14 +128,59 @@ void socket_task(void *pvParameters) {
 //==============================================================================================================
 
 // Определение флагов
-#define FLAG1 0x01
-#define FLAG2 0x02
-#define FLAG3 0x04
+// #define FLAG1 0x01
+// #define FLAG2 0x02
+// #define FLAG3 0x04
+
+// // Функция анализа строки и установки флагов
+// void Pars_Socket_Data(char *rx_buf) {
+//     // Инициализация флагов
+//     unsigned char flags = 0x00;
+
+//     // Определение вариантов соответствия
+//     const char *options[] = {"Red", "Green", "Blue"};
+
+//     // Анализ строки и установка флагов
+//     for (int i = 0; i < 3; i++) {
+//         if (strstr(rx_buf, options[i]) != NULL) {
+//             switch (i) {
+//                 case 0:
+//                     flags |= FLAG1;
+//                     ESP_LOGI(TAG, "________________________Red");
+
+//                     var.leds.red   = 1;
+//                     var.leds.green = 0;
+//                     var.leds.blue  = 0;
+//                     break;
+//                 //=====================    
+//                 case 1:
+//                     flags |= FLAG2;
+//                     ESP_LOGI(TAG, "________________________Green");
+
+//                     var.leds.red   = 0;
+//                     var.leds.green = 1;
+//                     var.leds.blue  = 0;
+//                     break;
+//                 //===================== 
+//                 case 2:
+//                     flags |= FLAG3;
+//                     ESP_LOGI(TAG, "________________________Blue");
+
+//                     var.leds.red   = 0;
+//                     var.leds.green = 0;
+//                     var.leds.blue  = 1;                    
+//                     break;
+//             }
+//         }
+//     }
+
+//     // Вывод флагов
+//     ESP_LOGI(TAG, "Флаги: 0x%02X\n", flags);
+// }
+
 
 // Функция анализа строки и установки флагов
 void Pars_Socket_Data(char *rx_buf) {
-    // Инициализация флагов
-    unsigned char flags = 0x00;
 
     // Определение вариантов соответствия
     const char *options[] = {"Red", "Green", "Blue"};
@@ -223,7 +190,6 @@ void Pars_Socket_Data(char *rx_buf) {
         if (strstr(rx_buf, options[i]) != NULL) {
             switch (i) {
                 case 0:
-                    flags |= FLAG1;
                     ESP_LOGI(TAG, "________________________Red");
 
                     var.leds.red   = 1;
@@ -232,7 +198,6 @@ void Pars_Socket_Data(char *rx_buf) {
                     break;
                 //=====================    
                 case 1:
-                    flags |= FLAG2;
                     ESP_LOGI(TAG, "________________________Green");
 
                     var.leds.red   = 0;
@@ -241,7 +206,6 @@ void Pars_Socket_Data(char *rx_buf) {
                     break;
                 //===================== 
                 case 2:
-                    flags |= FLAG3;
                     ESP_LOGI(TAG, "________________________Blue");
 
                     var.leds.red   = 0;
@@ -252,6 +216,25 @@ void Pars_Socket_Data(char *rx_buf) {
         }
     }
 
-    // Вывод флагов
-    ESP_LOGI(TAG, "Флаги: 0x%02X\n", flags);
+    // Дополнительный код для обработки ключевого слова "PER"
+    char *per_ptr = strstr(rx_buf, "PER");
+    if (per_ptr != NULL) {
+        per_ptr += 3; // Переходим за "PER"
+
+        // Пропускаем пробелы и недопустимые символы
+        while (*per_ptr != '\0' && !isdigit((unsigned char)*per_ptr)) {
+            per_ptr++;
+        }
+
+        if (*per_ptr != '\0') {
+            // Извлекаем целое значение после "PER"
+            int per_value = atoi(per_ptr);
+            ESP_LOGI(TAG, "________________________PER value: %d", per_value);
+
+            var.per_value = per_value;
+        } else {
+            ESP_LOGI(TAG, "________________________No value found after PER");
+        }
+    }
+
 }

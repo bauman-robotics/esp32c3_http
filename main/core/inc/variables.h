@@ -14,6 +14,7 @@ typedef struct {
 
 typedef struct {   
     Led_Type leds;
+    int per_value;  // send period 
 } variables;
 
 extern variables var;

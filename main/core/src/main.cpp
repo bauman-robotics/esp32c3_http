@@ -80,6 +80,7 @@ extern "C" void app_main(void) {
     #endif 
     
     configure_led();
+    var.per_value = SOCKET_SEND_PERIOD_MS;
 
     // Создание задач
     #ifdef POST_REQUEST_ENABLE
