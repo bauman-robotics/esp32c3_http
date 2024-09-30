@@ -44,3 +44,8 @@ def_pass.h
 
 # Build directories
 build/
+
+.vscode/
+dependencies.lock
+
+
