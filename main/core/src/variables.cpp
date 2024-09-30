@@ -1,4 +1,4 @@
 #include "variables.h"
 
 
-// variables var;
+variables var;

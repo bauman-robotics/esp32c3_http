@@ -24,9 +24,8 @@
 #include <sys/time.h>
 
 #include "variables.h"
-#include "led_blink.h"
+#include "signal_gen.h"
 
-extern variables var; 
 
 static const char *TAG = "ex";
 
@@ -37,7 +36,6 @@ static int signal_forms;
 void socket_task(void *pvParameters);
 void Pars_Socket_Data(char * rx_buf);
 
-
 //=== Отправка пакетов и Асинхронное чтение ===================================================================================
 
 void socket_task(void *pvParameters) {
@@ -47,7 +45,7 @@ void socket_task(void *pvParameters) {
     int addr_family;
     int ip_protocol;
 
-    while (1) {
+     while (1) {
         struct sockaddr_in dest_addr;
         dest_addr.sin_addr.s_addr = inet_addr(SOCKET_IP);
         dest_addr.sin_family = AF_INET;
@@ -104,7 +102,7 @@ void socket_task(void *pvParameters) {
             
 
             if (var.leds.green) {
-                signal_forms = calc_sine_socket_data();
+                signal_forms = (int)calc_sine_socket_data();
             }
             else if (var.leds.red) {
                 signal_forms = calc_sawtooth_socket_data();
@@ -197,3 +195,5 @@ void Pars_Socket_Data(char *rx_buf) {
     }
 
 }
+
+

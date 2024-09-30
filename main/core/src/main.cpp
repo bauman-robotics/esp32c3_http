@@ -6,6 +6,7 @@
 #include "http_func.h"
 #include "led_blink.h"
 #include "web_socket.h"
+#include "signal_gen.h"
 //============
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -106,5 +107,4 @@ extern "C" void app_main(void) {
         vTaskDelay(pdMS_TO_TICKS(1000)); // Добавьте задержку, чтобы избежать тайм-аута задачи
     }    
 }
-
 

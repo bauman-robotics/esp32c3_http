@@ -5,6 +5,8 @@ idf_component_register(
        "core/src/led_blink.cpp"  
        "core/src/debug_func.cpp"         
        "core/src/web_socket.cpp"  
+       "core/src/signal_gen.cpp"    
+       "core/src/variables.cpp"               
     INCLUDE_DIRS 
         "core/inc"
 )

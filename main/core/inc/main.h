@@ -14,3 +14,7 @@
 #define LEDS_CONNECT_TO_SERVER_STATE   (2)
 
 
+#define SIN_PERIOD_MS      1000 // 1 second for a full sine wave cycle
+#define SIN_VALUES_COUNT   100  // 100 values per period
+#define AMPLITUDE          1000 // Amplitude from 0 to 1000
+
