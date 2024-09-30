@@ -1,5 +1,5 @@
 #pragma once
-#include "variables.h"
+
 
 //=== SOCKET Params ===============
 // Определите макросы для серверов

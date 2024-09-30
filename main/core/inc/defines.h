@@ -26,8 +26,10 @@
 
 //========================================
 
+#define SIGNAL_GEN_TASK_EN
 
-//#define RECEIVE_ANSWER_ENABLE 
-//=================================
+#define DATA_PREFIX "data "
+#define NUM_ELEMENT_IN_PACKET (10)
 
+#define DEBUG_LOG
 

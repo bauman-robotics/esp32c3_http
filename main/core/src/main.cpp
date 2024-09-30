@@ -7,9 +7,12 @@
 #include "led_blink.h"
 #include "web_socket.h"
 #include "signal_gen.h"
+#include "variables.h"
 //============
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
+
 //========================================
 const char *TAG = "esp32";
 
@@ -81,7 +84,7 @@ extern "C" void app_main(void) {
     #endif 
     
     configure_led();
-    var.per_value = SOCKET_SEND_PERIOD_MS;
+    var.signal_period = SOCKET_SEND_PERIOD_MS;
 
     // Создание задач
     #ifdef POST_REQUEST_ENABLE
@@ -102,6 +105,15 @@ extern "C" void app_main(void) {
     #ifdef SEND_UART_SIN_ENABLE  
         xTaskCreate(uart_sin_send_task, "Uart_task", 2048, NULL, 5, NULL);   
     #endif 
+
+
+    xQueue = xQueueCreate(10, sizeof(int32_t));
+
+    #ifdef SIGNAL_GEN_TASK_EN  
+        xTaskCreate(signal_gen_task, "signal_gen_task", 2048, NULL, 5, NULL);   
+    #endif 
+
+
 
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000)); // Добавьте задержку, чтобы избежать тайм-аута задачи

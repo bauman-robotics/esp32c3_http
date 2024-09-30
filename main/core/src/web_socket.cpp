@@ -35,6 +35,7 @@ static int signal_forms;
 
 void socket_task(void *pvParameters);
 void Pars_Socket_Data(char * rx_buf);
+int Add_Number_To_String(char *str, int number, const char *prefix, int *element_count, int max_elements); 
 
 //=== Отправка пакетов и Асинхронное чтение ===================================================================================
 
@@ -101,27 +102,48 @@ void socket_task(void *pvParameters) {
             //=== Генерация данных для отправки ====================================
             
 
-            if (var.leds.green) {
-                signal_forms = (int)calc_sine_socket_data();
-            }
-            else if (var.leds.red) {
-                signal_forms = calc_sawtooth_socket_data();
-            }
-            else if (var.leds.blue) {
-                signal_forms = calc_triangle_socket_data();
-            }
-            sprintf(buf, "data %d", signal_forms);
+            // if (var.leds.green) {
+            //     signal_forms = (int)calc_sine_socket_data();
+            // }
+            // else if (var.leds.red) {
+            //     signal_forms = (int)calc_sawtooth_socket_data();
+            // }
+            // else if (var.leds.blue) {
+            //     signal_forms = (int)calc_triangle_socket_data();
+            // }
 
-            //int err = send(sock, buf, strlen(buf), 0);       
-            int err = send(sock, buf, strlen(buf), MSG_NOSIGNAL); 
-            if (err < 0) {
-                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-                break;  // Выход из внутреннего цикла и попытка переподключения
+            // Получение значения из очереди
+            if (xQueueReceive(xQueue, &signal_forms, portMAX_DELAY) == pdPASS) {
+                //ESP_LOGI(TAG, "Received value from Queue: %d\n", signal_forms);
             } else {
-                ESP_LOGI(TAG, "> %s", buf);
+                ESP_LOGE(TAG, "Failed to receive value from Queue!");
             }
+            int is_buf_full = Add_Number_To_String(var.packet.buf, signal_forms, DATA_PREFIX, &var.packet.count_el, NUM_ELEMENT_IN_PACKET); 
 
-            vTaskDelay(var.per_value / portTICK_PERIOD_MS);
+            if (is_buf_full) {
+                int err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
+                if (err < 0) {
+                    ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+                    break;  // Выход из внутреннего цикла и попытка переподключения
+                } else {
+                    ESP_LOGI(TAG, "> %s", var.packet.buf);
+                }
+                var.packet.buf[0] = 0;
+                var.packet.count_el = 0;                
+            }
+            
+            //=== was work ===
+            //sprintf(buf, "data %d", signal_forms);    
+            // int err = send(sock, buf, strlen(buf), MSG_NOSIGNAL); 
+            // if (err < 0) {
+            //     ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+            //     break;  // Выход из внутреннего цикла и попытка переподключения
+            // } else {
+            //     ESP_LOGI(TAG, "> %s", buf);
+            // }
+            //================
+
+            vTaskDelay(var.signal_period / portTICK_PERIOD_MS);
             //======================================================================
         }
 
@@ -185,15 +207,38 @@ void Pars_Socket_Data(char *rx_buf) {
 
         if (*per_ptr != '\0') {
             // Извлекаем целое значение после "PER"
-            int per_value = atoi(per_ptr);
-            ESP_LOGI(TAG, "________________________PER value: %d", per_value);
+            int signal_period = atoi(per_ptr);
+            ESP_LOGI(TAG, "________________________PER value: %d", signal_period);
 
-            var.per_value = per_value;
+            var.signal_period = signal_period;
         } else {
             ESP_LOGI(TAG, "________________________No value found after PER");
         }
     }
 
 }
+//==============================================================================================================
 
 
+// Функция для добавления числа в строку и проверки заполненности
+int Add_Number_To_String(char *str, int number, const char *prefix, int *element_count, int max_elements) {
+    char number_str[12]; // Буфер для хранения строкового представления числа
+    sprintf(number_str, "%d%s", number, " "); // Конвертация числа в строку
+
+    // Добавляем префикс и число
+    strcat(str, prefix);
+    strcat(str, number_str);
+
+    // Увеличиваем счетчик количества элементов
+    (*element_count)++;
+
+    //ESP_LOGI(TAG, "Add data to string %d", number);
+
+    // Проверяем, достигли ли мы максимального количества элементов
+    if (*element_count >= max_elements) {
+        //ESP_LOGI(TAG, "Packet full");
+        return 1; // Строка заполнена        
+    }
+
+    return 0; // Строка еще не заполнена
+}
