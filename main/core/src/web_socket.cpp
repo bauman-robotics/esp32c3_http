@@ -24,14 +24,15 @@
 #include <sys/time.h>
 
 #include "variables.h"
+#include "led_blink.h"
 
 extern variables var; 
 
 static const char *TAG = "ex";
 
-int calc_sine_socket_data();
+
 static char buf[80] ={0};
-static int sin_data_s;
+static int signal_forms;
 
 void socket_task(void *pvParameters);
 void Pars_Socket_Data(char * rx_buf);
@@ -100,8 +101,18 @@ void socket_task(void *pvParameters) {
             //======================================================================
 
             //=== Генерация данных для отправки ====================================
-            sin_data_s = calc_sine_socket_data();
-            sprintf(buf, "data %d", sin_data_s);
+            
+
+            if (var.leds.green) {
+                signal_forms = calc_sine_socket_data();
+            }
+            else if (var.leds.red) {
+                signal_forms = calc_sawtooth_socket_data();
+            }
+            else if (var.leds.blue) {
+                signal_forms = calc_triangle_socket_data();
+            }
+            sprintf(buf, "data %d", signal_forms);
 
             //int err = send(sock, buf, strlen(buf), 0);       
             int err = send(sock, buf, strlen(buf), MSG_NOSIGNAL); 
@@ -126,58 +137,6 @@ void socket_task(void *pvParameters) {
     }
 }
 //==============================================================================================================
-
-// Определение флагов
-// #define FLAG1 0x01
-// #define FLAG2 0x02
-// #define FLAG3 0x04
-
-// // Функция анализа строки и установки флагов
-// void Pars_Socket_Data(char *rx_buf) {
-//     // Инициализация флагов
-//     unsigned char flags = 0x00;
-
-//     // Определение вариантов соответствия
-//     const char *options[] = {"Red", "Green", "Blue"};
-
-//     // Анализ строки и установка флагов
-//     for (int i = 0; i < 3; i++) {
-//         if (strstr(rx_buf, options[i]) != NULL) {
-//             switch (i) {
-//                 case 0:
-//                     flags |= FLAG1;
-//                     ESP_LOGI(TAG, "________________________Red");
-
-//                     var.leds.red   = 1;
-//                     var.leds.green = 0;
-//                     var.leds.blue  = 0;
-//                     break;
-//                 //=====================    
-//                 case 1:
-//                     flags |= FLAG2;
-//                     ESP_LOGI(TAG, "________________________Green");
-
-//                     var.leds.red   = 0;
-//                     var.leds.green = 1;
-//                     var.leds.blue  = 0;
-//                     break;
-//                 //===================== 
-//                 case 2:
-//                     flags |= FLAG3;
-//                     ESP_LOGI(TAG, "________________________Blue");
-
-//                     var.leds.red   = 0;
-//                     var.leds.green = 0;
-//                     var.leds.blue  = 1;                    
-//                     break;
-//             }
-//         }
-//     }
-
-//     // Вывод флагов
-//     ESP_LOGI(TAG, "Флаги: 0x%02X\n", flags);
-// }
-
 
 // Функция анализа строки и установки флагов
 void Pars_Socket_Data(char *rx_buf) {
