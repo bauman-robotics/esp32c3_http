@@ -120,7 +120,7 @@ void socket_task(void *pvParameters) {
 
                         //ESP_LOGI(TAG, "Signal data[0]=%d", signal_data.data[0]);
                         //ESP_LOGI(TAG, "Signal data[1]=%d", signal_data.data[1]);     
-
+                        int err = 0;
                         if (!var.packet.type_hex) {
                             //=== Заполнили стороку пакета данными ===
                             for (int i = 0; i < var.count_vals_in_packet; i++) {
@@ -131,10 +131,10 @@ void socket_task(void *pvParameters) {
                             }
                             
                             //=== Отправка пакета ====
-                            int err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
+                            err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
                         }
                         else {
-                            int err = send(sock, &signal_data.data, sizeof(signal_data.data), MSG_NOSIGNAL); 
+                            err = send(sock, &signal_data.data, sizeof(signal_data.data), MSG_NOSIGNAL); 
                         } 
 
                         if (err < 0) {
