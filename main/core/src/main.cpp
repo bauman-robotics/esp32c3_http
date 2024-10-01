@@ -85,6 +85,11 @@ extern "C" void app_main(void) {
     configure_led();
     var.signal_period        = SOCKET_SEND_PERIOD_MS;
     var.count_vals_in_packet = NUM_ELEMENT_IN_PACKET;
+    #ifdef BINARY_PACKET 
+        var.packet.type_hex = 1;
+    #else 
+        var.packet.type_hex = 0;
+    #endif 
 
     // Создание задач
     #ifdef POST_REQUEST_ENABLE

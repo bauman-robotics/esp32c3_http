@@ -34,6 +34,7 @@
 
 #define SOCKET_BUF_TX_SIZE    (1500)
 
+//#define BINARY_PACKET 
 
 //#define DEBUG_LOG
 

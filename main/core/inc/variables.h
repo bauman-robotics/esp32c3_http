@@ -22,6 +22,7 @@ typedef struct {
 typedef struct {
     int count_el;
     char buf[SOCKET_BUF_TX_SIZE]; // " data 1000"
+    bool type_hex;
 } packet_type;
 //======================================================================
 

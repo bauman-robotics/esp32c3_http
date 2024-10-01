@@ -121,17 +121,21 @@ void socket_task(void *pvParameters) {
                         //ESP_LOGI(TAG, "Signal data[0]=%d", signal_data.data[0]);
                         //ESP_LOGI(TAG, "Signal data[1]=%d", signal_data.data[1]);     
 
-                         
-                        //=== Заполнили стороку пакета данными ===
-                        for (int i = 0; i < var.count_vals_in_packet; i++) {
-                            //int is_buf_full = 
-                            Add_Number_To_String(var.packet.buf, signal_data.data[i], DATA_PREFIX, &var.packet.count_el, var.count_vals_in_packet); 
+                        if (!var.packet.type_hex) {
+                            //=== Заполнили стороку пакета данными ===
+                            for (int i = 0; i < var.count_vals_in_packet; i++) {
+                                //int is_buf_full = 
+                                Add_Number_To_String(var.packet.buf, signal_data.data[i], DATA_PREFIX, &var.packet.count_el, var.count_vals_in_packet); 
 
-                            //ESP_LOGI(TAG, "Data[%d]: %d", i, signal_data.data[i]);
+                                //ESP_LOGI(TAG, "Data[%d]: %d", i, signal_data.data[i]);
+                            }
+                            
+                            //=== Отправка пакета ====
+                            int err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
                         }
-
-                        //=== Отправка пакета ====
-                        int err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
+                        else {
+                            int err = send(sock, &signal_data.data, sizeof(signal_data.data), MSG_NOSIGNAL); 
+                        } 
 
                         if (err < 0) {
                             ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
@@ -192,12 +196,19 @@ void socket_task(void *pvParameters) {
 //Функция анализа строки и установки флагов
 void Pars_Socket_Data(char *rx_buf) {
 
-    // Определение вариантов соответствия
-    const char *options[] = {"Red", "Green", "Blue"};
+    // Проверка на нулевой указатель
+    if (rx_buf == NULL) {
+        ESP_LOGI(TAG, "rx_buf is NULL");
+        return;
+    }    
 
+    // Определение вариантов соответствия
+    const char *options[] = {"Red", "Green", "Blue", "HEX", "ASCII"};
+    int count = sizeof(options) / sizeof(options[0]);
     // Анализ строки и установка флагов
-    for (int i = 0; i < 3; i++) {
-        if (strstr(rx_buf, options[i]) != NULL) {
+    for (int i = 0; i < count; i++) {
+        //if (strstr(rx_buf, options[i]) != NULL) {
+        if (strcasestr(rx_buf, options[i]) != NULL) {            
             switch (i) {
                 case 0:
                     ESP_LOGI(TAG, "________________________Red");
@@ -222,100 +233,50 @@ void Pars_Socket_Data(char *rx_buf) {
                     var.leds.green = 0;
                     var.leds.blue  = 1;                    
                     break;
+                //===================== 
+                case 3:
+                    ESP_LOGI(TAG, "________________________HEX");
+
+                    var.packet.type_hex = 1;
+                 
+                    break;
+                //===================== 
+                case 4:
+                    ESP_LOGI(TAG, "________________________ASCII");
+
+                    var.packet.type_hex = 0;
+
+                    break;                                        
             }
         }
     }
 
-    // Дополнительный код для обработки ключевого слова "PER"
-    char *per_ptr = strstr(rx_buf, "PER");
-    if (per_ptr != NULL) {
-        per_ptr += 3; // Переходим за "PER"
+    // Обработка ключевого слова "PER"
+    process_keyword(rx_buf, "PER", &var.signal_period);
 
-        // Пропускаем пробелы и недопустимые символы
-        while (*per_ptr != '\0' && !isdigit((unsigned char)*per_ptr)) {
-            per_ptr++;
-        }
+    // Обработка ключевого слова "NUM"
+    process_keyword(rx_buf, "NUM", &var.count_vals_in_packet);
 
-        if (*per_ptr != '\0') {
-            // Извлекаем целое значение после "PER"
-            int signal_period = atoi(per_ptr);
-            ESP_LOGI(TAG, "________________________PER value: %d", signal_period);
-
-            var.signal_period = signal_period;
-        } else {
-            //ESP_LOGI(TAG, "________________________No value found after PER");
-        }
-    }
-
-    //=== Количество данных в пакете =================================
-    // Дополнительный код для обработки ключевого слова "NUM"  
-    char *num_ptr = strstr(rx_buf, "NUM");
-    if (num_ptr != NULL) {
-        num_ptr += 3; // Переходим за "NUM"
-
-        // Пропускаем пробелы и недопустимые символы
-        while (*num_ptr != '\0' && !isdigit((unsigned char)*num_ptr)) {
-            num_ptr++;
-        }
-
-        if (*num_ptr != '\0') {
-            // Извлекаем целое значение после "NUM"
-            int count_vals_in_packet = atoi(num_ptr);
-            ESP_LOGI(TAG, "________________________NUM value: %d", count_vals_in_packet);
-
-            var.count_vals_in_packet = count_vals_in_packet;
-        } else {
-            //ESP_LOGI(TAG, "________________________No value found after PER");
-        }
-    }
 }
 //==============================================================================================================
 
-// Функция анализа строки и установки флагов
-// void Pars_Socket_Data(char *rx_buf) {
-//     // Определение вариантов соответствия
-//     const char *options[] = {"Red", "Green", "Blue"};
-//     int led_states[3] = {0, 0, 0}; // Массив для хранения состояний светодиодов
+void process_keyword(char *rx_buf, const char *keyword, int *value) {
+    char *keyword_ptr = strstr(rx_buf, keyword);
+    if (keyword_ptr != NULL) {
+        keyword_ptr += strlen(keyword); // Переходим за ключевое слово
 
-//     // Анализ строки и установка флагов
-//     for (int i = 0; i < 3; i++) {
-//         if (strstr(rx_buf, options[i]) != NULL) {
-//             memset(led_states, 0, sizeof(led_states)); // Сбрасываем все флаги
-//             led_states[i] = 1; // Устанавливаем флаг для текущего светодиода
-//             break; // Выходим из цикла, так как только один флаг может быть установлен
-//         }
-//     }
+        // Пропускаем пробелы и недопустимые символы
+        while (*keyword_ptr != '\0' && !isdigit((unsigned char)*keyword_ptr)) {
+            keyword_ptr++;
+        }
 
-//     // Применяем состояния светодиодов
-//     var.leds.red   = led_states[0];
-//     var.leds.green = led_states[1];
-//     var.leds.blue  = led_states[2];
-
-//     // Обработка ключевого слова "PER"
-//     process_keyword(rx_buf, "PER", &var.signal_period);
-
-//     // Обработка ключевого слова "NUM"
-//     process_keyword(rx_buf, "NUM", &var.count_vals_in_packet);
-// }
-// //==============================================================================================================
-
-// void process_keyword(char *rx_buf, const char *keyword, int *value) {
-//     char *keyword_ptr = strstr(rx_buf, keyword);
-//     if (keyword_ptr != NULL) {
-//         keyword_ptr += strlen(keyword); // Переходим за ключевое слово
-
-//         // Пропускаем пробелы и недопустимые символы
-//         while (*keyword_ptr != '\0' && !isdigit((unsigned char)*keyword_ptr)) {
-//             keyword_ptr++;
-//         }
-
-//         if (*keyword_ptr != '\0') {
-//             // Извлекаем целое значение после ключевого слова
-//             *value = atoi(keyword_ptr);
-//             ESP_LOGI(TAG, "________________________%s value: %d", keyword, *value);
-//         }
-//     }
-// }
+        if (*keyword_ptr != '\0') {
+            // Извлекаем целое значение после ключевого слова
+            *value = atoi(keyword_ptr);
+            ESP_LOGI(TAG, "________________________%s value: %d", keyword, *value);
+        }
+    }
+}
 //==============================================================================================================
 
 // Функция для добавления числа в строку и проверки заполненности
