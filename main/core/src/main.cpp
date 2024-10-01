@@ -84,7 +84,8 @@ extern "C" void app_main(void) {
     #endif 
     
     configure_led();
-    var.signal_period = SOCKET_SEND_PERIOD_MS;
+    var.signal_period        = SOCKET_SEND_PERIOD_MS;
+    var.count_vals_in_packet = NUM_ELEMENT_IN_PACKET;
 
     // Создание задач
     #ifdef POST_REQUEST_ENABLE
@@ -106,8 +107,16 @@ extern "C" void app_main(void) {
         xTaskCreate(uart_sin_send_task, "Uart_task", 2048, NULL, 5, NULL);   
     #endif 
 
+    //=========================================
+    xQueueSignalData = xQueueCreate(10, sizeof(SignalData));
+    xQueueSignalReady = xQueueCreate(10, sizeof(uint8_t));
 
-    xQueue = xQueueCreate(10, sizeof(int32_t));
+    if (xQueueSignalData == NULL || xQueueSignalReady == NULL) {
+        ESP_LOGE(TAG, "Failed to create queues");
+        return;
+    }
+    //=========================================
+    
 
     #ifdef SIGNAL_GEN_TASK_EN  
         xTaskCreate(signal_gen_task, "signal_gen_task", 2048, NULL, 5, NULL);   

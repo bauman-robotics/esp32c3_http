@@ -11,19 +11,19 @@
 //=================================
 
 // Очередь для передачи данных
-extern QueueHandle_t xQueue;
+static SignalData signal_data = {0}; // Инициализировать данные сигнала
 
 //================================
 extern const char *TAG;
 
 int32_t calc_sine_post_data();
 int32_t calc_sine_uart_data();
-int32_t calc_sine_socket_data();
-int32_t calc_sawtooth_socket_data();
-int32_t calc_triangle_socket_data();
+int calc_sine_socket_data();
+int calc_sawtooth_socket_data();
+int calc_triangle_socket_data();
 
 void signal_gen_task(void *pvParameters);
-
+void Generate_Signal(SignalData *signal_data);
 //===============================================================
 
 int32_t calc_sine_post_data()
@@ -53,13 +53,13 @@ int32_t calc_sine_uart_data()
     return sine_value;
 }
 //===============================================================
-int32_t calc_sine_socket_data()
+int calc_sine_socket_data()
 {
     static uint32_t s_time = 0;
 
     // Calculate the current time position in the cycle
     float t = (float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * 2 * M_PI;
-    int32_t sine_value = (int32_t)((sin(t) * (AMPLITUDE / 2)) + (AMPLITUDE / 2));
+    int sine_value = (int)((sin(t) * (AMPLITUDE / 2)) + (AMPLITUDE / 2));
 
     s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
 
@@ -69,13 +69,13 @@ int32_t calc_sine_socket_data()
 
 //===============================================================
 
-int32_t calc_sawtooth_socket_data()
+int calc_sawtooth_socket_data()
 {
     //static uint32_t s_time = 0;
-    static int32_t sawtooth_value = 0;
+    static int sawtooth_value = 0;
 
     // Calculate the current time position in the cycle
-    // int32_t sawtooth_value = (int32_t)((float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * AMPLITUDE);
+    // int sawtooth_value = (int)((float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * AMPLITUDE);
     // s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
 
     if (sawtooth_value < 1000) {
@@ -88,18 +88,18 @@ int32_t calc_sawtooth_socket_data()
 }
 //===============================================================
 
-int32_t calc_triangle_socket_data()
+int calc_triangle_socket_data()
 {
     static uint32_t s_time = 0;
 
     // Calculate the current time position in the cycle
     float t = (float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS;
-    int32_t triangle_value;
+    int triangle_value;
 
     if (t < 0.5) {
-        triangle_value = (int32_t)(t * 2 * AMPLITUDE);
+        triangle_value = (int)(t * 2 * AMPLITUDE);
     } else {
-        triangle_value = (int32_t)((1 - t) * 2 * AMPLITUDE);
+        triangle_value = (int)((1 - t) * 2 * AMPLITUDE);
     }
 
     s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
@@ -108,7 +108,24 @@ int32_t calc_triangle_socket_data()
 }
 //===============================================================
 
-
+// Функция для генерации сигнала
+void Generate_Signal(SignalData *signal_data) {
+    if (var.leds.green) {
+        for (int i = 0; i < var.count_vals_in_packet; i++) {
+            signal_data->data[i] = calc_sine_socket_data();
+        }
+    } else if (var.leds.red) {
+        for (int i = 0; i < var.count_vals_in_packet; i++) {
+            signal_data->data[i] = calc_sawtooth_socket_data();
+        }
+    } else if (var.leds.blue) {
+        for (int i = 0; i < var.count_vals_in_packet; i++) {
+            signal_data->data[i] = calc_triangle_socket_data();
+        }
+    }
+    signal_data->ready = 1; // Установить флаг готовности данных
+}
+//==============================================================================================================
 
 void signal_gen_task(void *pvParameters) {
 
@@ -119,27 +136,25 @@ void signal_gen_task(void *pvParameters) {
 
         if (var.leds.flags == LEDS_CONNECT_TO_SERVER_STATE) {
 
+           
 
-            int32_t signal_forms = 0;
-
-            if (var.leds.green) {
-                signal_forms = calc_sine_socket_data();
-            }
-            else if (var.leds.red) {
-                signal_forms = calc_sawtooth_socket_data();
-            }
-            else if (var.leds.blue) {
-                signal_forms = calc_triangle_socket_data();
-            }
-
+            Generate_Signal(&signal_data);
             
-            // Отправка значения в очередь
-            if (xQueueSend(xQueue, &signal_forms, portMAX_DELAY) == pdPASS) {
-                //ESP_LOGI(TAG, "Value sent to Queue successfully!");
+            // Отправка данных сигнала в очередь
+            if (xQueueSend(xQueueSignalData, &signal_data, portMAX_DELAY) == pdPASS) {
+                //ESP_LOGI(TAG, "Signal data sent to Queue successfully!");
             } else {
-                ESP_LOGI(TAG, "Failed to send value!");            
+                ESP_LOGI(TAG, "Failed to send signal data!");
             }
 
+            // Уведомление о готовности данных
+            if (xQueueSend(xQueueSignalReady, &signal_data.ready, portMAX_DELAY) == pdPASS) {
+                //ESP_LOGI(TAG, "Ready flag sent to Queue successfully!");
+            } else {
+                ESP_LOGI(TAG, "Failed to send ready flag!");
+            }
+            //ESP_LOGI(TAG, "Signal data[0]=%d", signal_data.data[0]);
+            //ESP_LOGI(TAG, "Signal data[1]=%d", signal_data.data[1]);     
         }
         vTaskDelay(var.signal_period / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
 
@@ -148,4 +163,3 @@ void signal_gen_task(void *pvParameters) {
 
     }
 }
-//==============================================================================================================

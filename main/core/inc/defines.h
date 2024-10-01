@@ -28,8 +28,12 @@
 
 #define SIGNAL_GEN_TASK_EN
 
-#define DATA_PREFIX "data "
-#define NUM_ELEMENT_IN_PACKET (10)
+#define DATA_PREFIX "d "
+#define NUM_ELEMENT_IN_PACKET       (10)
+#define MAX_NUM_ELEMENT_IN_PACKET   (255)
 
-#define DEBUG_LOG
+#define SOCKET_BUF_TX_SIZE    (1500)
+
+
+//#define DEBUG_LOG
 
