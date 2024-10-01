@@ -16,16 +16,16 @@
 //========================================
 const char *TAG = "esp32";
 
-static int32_t post_sin_data;
-static int32_t uart_sin_data;
+static int16_t post_sin_data;
+static int16_t uart_sin_data;
 //=====================================================================================
-int alarm_interval   = 200; // 200 - 2 min, 00 sec
-int cold = 1;
-int hot = 1;
+int16_t alarm_interval   = 200; // 200 - 2 min, 00 sec
+int16_t cold = 1;
+int16_t hot = 1;
 //=====================================================================================
 
 // Объявление функций
-void send_post_request(void *param);
+//void send_post_request(void *param);
 void blink_led(void *param);
 //=====================================================================================
 
@@ -55,7 +55,7 @@ void send_post_request_task(void *pvParameters) {
 void uart_sin_send_task(void *pvParameters) {
     while (1) {
         uart_sin_data = calc_sine_uart_data();
-        ESP_LOGI(TAG, "data %" PRId32, uart_sin_data);
+        ESP_LOGI(TAG, "data %" PRId16, uart_sin_data);
         vTaskDelay(pdMS_TO_TICKS(UART_SIN_SEND_PERIOD_MS)); // Задержка на 1 секунду
     }
 }

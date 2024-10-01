@@ -9,6 +9,7 @@
         "span": "cpp",
         "vector": "cpp",
         "cstdlib": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "cmath": "cpp"
     }
 }
