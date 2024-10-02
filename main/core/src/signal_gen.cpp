@@ -24,6 +24,7 @@ int16_t calc_triangle_socket_data();
 
 void signal_gen_task(void *pvParameters);
 void Generate_Signal(SignalData *signal_data);
+void Set_Header(SignalData* signalData); 
 //===============================================================
 
 int16_t calc_sine_post_data()
@@ -123,6 +124,17 @@ void Generate_Signal(SignalData *signal_data) {
             signal_data->data[i] = calc_triangle_socket_data();
         }
     }
+    // Установка заголовка
+    Set_Header(signal_data);
+    #ifdef DEBUG_LOG
+    
+    ESP_LOGI(TAG, "Generate_Signal_full_packet_size: %" PRId16, signal_data->header.full_packet_size);
+    ESP_LOGI(TAG, "Generate_Signal_type: %" PRId8, signal_data->header.type);
+    ESP_LOGI(TAG, "Generate_Signal_data[0]: %" PRId16, signal_data->data[0]);
+    ESP_LOGI(TAG, "Generate_Signal_data[1]: %" PRId16, signal_data->data[1]);
+
+    #endif 
+
     signal_data->ready = 1; // Установить флаг готовности данных
 }
 //==============================================================================================================
@@ -163,3 +175,11 @@ void signal_gen_task(void *pvParameters) {
 
     }
 }
+//==============================================
+
+// Функция для установки заголовка
+void Set_Header(SignalData* signalData) {
+    signalData->header.type = (uint16_t)BYNARY_PACKET_KEY; // Установка типа сообщения
+    signalData->header.full_packet_size = var.count_vals_in_packet * sizeof(int16_t) + sizeof(PacketHeader); // Размер данных в байтах
+}
+//==============================================

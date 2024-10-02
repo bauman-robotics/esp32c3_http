@@ -5,8 +5,18 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "defines.h"
+
+
+//======================================================================
+
+// Определяем структуру заголовка
+typedef struct {
+    uint16_t type;       // Тип сообщения      
+    uint16_t full_packet_size;      // Размер данных в байтах
+} PacketHeader;
 //======================================================================
 typedef struct {
+    PacketHeader header; // Заголовок
     int16_t data[MAX_NUM_ELEMENT_IN_PACKET]; // Массив для хранения данных сигнала
     uint8_t ready;    // Флаг готовности данных
 } SignalData;
@@ -41,3 +51,8 @@ extern variables var;
 
 extern QueueHandle_t xQueueSignalData;
 extern QueueHandle_t xQueueSignalReady;
+
+
+
+
+//======================================================================

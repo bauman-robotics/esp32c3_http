@@ -30,9 +30,11 @@
 
 #define DATA_PREFIX "d "
 #define NUM_ELEMENT_IN_PACKET       (10)
-#define MAX_NUM_ELEMENT_IN_PACKET   (255)
+#define MAX_NUM_ELEMENT_IN_PACKET   (1000)
 
 #define SOCKET_BUF_TX_SIZE    (1500)
+
+#define BYNARY_PACKET_KEY (2255)
 
 //#define BINARY_PACKET 
 

@@ -79,6 +79,7 @@ void socket_task(void *pvParameters) {
         ESP_LOGI(TAG, "Successfully connected");
 
         var.leds.flags = LEDS_CONNECT_TO_SERVER_STATE;
+
         var.leds.red   = 0;
         var.leds.green = 1;
         var.leds.blue  = 0;
@@ -116,10 +117,11 @@ void socket_task(void *pvParameters) {
 
                         #ifdef DEBUG_LOG
                             ESP_LOGI(TAG, "Received signal data:");
+                            ESP_LOGI(TAG, "Receive_Q_Signal data[0]=%d", signal_data.data[0]);
+                            ESP_LOGI(TAG, "Receive_Q_Signal data[1]=%d", signal_data.data[1]); 
                         #endif 
 
-                        //ESP_LOGI(TAG, "Signal data[0]=%d", signal_data.data[0]);
-                        //ESP_LOGI(TAG, "Signal data[1]=%d", signal_data.data[1]);     
+    
                         int err = 0;
                         if (!var.packet.type_hex) {
                             //=== Заполнили стороку пакета данными ===
@@ -134,7 +136,7 @@ void socket_task(void *pvParameters) {
                             err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
                         }
                         else {
-                            err = send(sock, &signal_data.data, sizeof(signal_data.data), MSG_NOSIGNAL); 
+                            err = send(sock, &signal_data, signal_data.header.full_packet_size, MSG_NOSIGNAL); 
                         } 
 
                         if (err < 0) {
@@ -143,7 +145,11 @@ void socket_task(void *pvParameters) {
                         } else {
                             
                             #ifdef DEBUG_LOG
-                                ESP_LOGI(TAG, "> %s", var.packet.buf);
+                                ESP_LOGI(TAG, "> signal_data header.type %d ", signal_data.header.type);
+                                ESP_LOGI(TAG, "> signal_data header.full_packet_size %d ", signal_data.header.full_packet_size);
+                                ESP_LOGI(TAG, "> signal_data data[0] %d ", signal_data.data[0]);
+                                ESP_LOGI(TAG, "> signal_data data[1] %d ", signal_data.data[1]);
+                                ESP_LOGI(TAG, "> Send %d  bytes ", signal_data.header.full_packet_size);
                             #endif 
                         }
                         var.packet.buf[0] = 0;
@@ -301,3 +307,5 @@ int Add_Number_To_String(char *str, int number, const char *prefix, int *element
 
     return 0; // Строка еще не заполнена
 }
+//=================================================================================
+
