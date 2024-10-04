@@ -1,5 +1,5 @@
 {
-    "idf.adapterTargetName": "esp32c6",
+    "idf.adapterTargetName": "esp32c3",
     "idf.port": "/dev/ttyACM0",
     "idf.flashType": "UART",
     "files.associations": {
@@ -21,6 +21,7 @@
         "random": "cpp",
         "unordered_map": "cpp",
         "utility": "cpp",
-        "cerrno": "cpp"
+        "cerrno": "cpp",
+        "led_strip.h": "c"
     }
 }

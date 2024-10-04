@@ -11,11 +11,15 @@
 
 #include "variables.h"
 #include "main.h"
+
+#include "driver/ledc.h"
+
+
 //=================================
 extern const char *TAG;
 
 
-#define BLINK_GPIO GPIO_NUM_8    // RGB LED 
+#define BLINK_GPIO GPIO_NUM_8    // RGB LED for C6 // Blue LED for C3
 #define HEARTBEAT_PERIOD_MS 1500 // 1 second for a full heartbeat cycle
 #define MAX_BRIGHTNESS      5    // 5 of 255
 
@@ -25,7 +29,22 @@ static led_strip_handle_t led_strip;
 void configure_led(void);
 void blink_led(void);
 
-//=================================
+//=== c3 ==============================
+
+
+#define LEDC_LS_TIMER          LEDC_TIMER_0
+#define LEDC_LS_MODE           LEDC_LOW_SPEED_MODE
+#define LEDC_LS_CH0_GPIO       (3) // GPIO 3 как пример, измените в соответствии с вашей схемой
+#define LEDC_LS_CH0_CHANNEL    LEDC_CHANNEL_0
+
+void configure_led_C3(void);
+void blink_led_C3(void);
+void set_led_brightness_С3(uint8_t brightness);
+void led_on_C3();  
+void led_off_C3();  
+void led_Toggle_C3();
+void ledc_init_C3(void); 
+//=====================================
 
 void configure_led(void)
 {    
@@ -50,6 +69,7 @@ void configure_led(void)
 
     /* Set all LEDs off to clear all pixels */
     led_strip_clear(led_strip);
+    ESP_LOGI(TAG, "ESP32_C6_CONFIG_LED");
 }
 //===============================================================
 
@@ -113,5 +133,81 @@ void blink_led(void)
     s_time += 10; // Increment time
 }
 //===============================================================
+
+void configure_led_C3(void)
+{    
+    var.leds.red = 1;
+    var.leds.green = 0; 
+    var.leds.blue = 0;
+
+    var.leds.flags = LEDS_NO_CONNECT_STATE;
+
+    /* Настроить GPIO на вывод */
+    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+
+    ESP_LOGI(TAG, "ESP32_C3_CONFIG_LED");
+    
+}
+//===============================================================
+
+void blink_led_C3(void)
+{
+    static uint32_t counter = 0;
+    static int period = 0;
+
+    if (var.leds.flags == LEDS_NO_CONNECT_STATE) {
+            
+       led_on_C3();
+
+    } else {
+
+        if (var.leds.flags == LEDS_GOT_IP_STATE) {
+            period = 200;
+        } else if (var.leds.flags == LEDS_CONNECT_TO_SERVER_STATE) {
+            if (var.leds.red) {
+                period = 2000;
+            } 
+            else if (var.leds.green) {
+                period = 500;
+
+            }
+            else if (var.leds.blue) { 
+                period = 1000;
+            }
+        }
+    }
+    //============================
+    if (counter < period) {
+        counter += 10;
+    }
+    else {
+        counter = 0; 
+        led_Toggle_C3();
+    }
+    //============================
+}
+//===============================================================
+
+void led_on_C3() {
+    gpio_set_level(BLINK_GPIO, 0);
+    //ESP_LOGI(TAG, "LED_ON");
+}
+//===============================================================
+
+void led_off_C3() {
+    gpio_set_level(BLINK_GPIO, 1);
+    //ESP_LOGI(TAG, "LED_OFF");
+}
+//===============================================================
+
+void led_Toggle_C3() {
+    static bool state = 1;
+    state = state ^ 1;
+    gpio_set_level(BLINK_GPIO, state);
+    //ESP_LOGI(TAG, "LED_Toggle");
+}
+//===============================================================
+
+
 
 

@@ -36,7 +36,8 @@
 
 #define BYNARY_PACKET_KEY (2255)
 
-//#define BINARY_PACKET 
+#define BINARY_PACKET 
 
 //#define DEBUG_LOG
 
+#define ESP32_C3

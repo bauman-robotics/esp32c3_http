@@ -32,7 +32,12 @@ void blink_led(void *param);
 // Задача для мигания светодиодом
 void blink_led_task(void *pvParameters) {
     while (1) {
-        blink_led();
+        #ifdef ESP32_C3
+            blink_led_C3();
+        #else 
+            blink_led();
+        #endif    
+
         vTaskDelay(pdMS_TO_TICKS(10)); // Задержка на 10 миллисекунд
     }
 }
@@ -82,7 +87,12 @@ extern "C" void app_main(void) {
         wifi_init_sta();
     #endif 
     
-    configure_led();
+    #ifdef ESP32_C3
+        configure_led_C3();
+    #else
+        configure_led();
+    #endif
+    
     var.signal_period        = SOCKET_SEND_PERIOD_MS;
     var.count_vals_in_packet = NUM_ELEMENT_IN_PACKET;
     #ifdef BINARY_PACKET 
