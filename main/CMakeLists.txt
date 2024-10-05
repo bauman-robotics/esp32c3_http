@@ -6,7 +6,9 @@ idf_component_register(
        "core/src/debug_func.cpp"         
        "core/src/web_socket.cpp"  
        "core/src/signal_gen.cpp"    
-       "core/src/variables.cpp"               
+       "core/src/variables.cpp"   
+       "core/src/i2c.cpp"  
+       "core/src/ina226.cpp"                            
     INCLUDE_DIRS 
         "core/inc"
 )

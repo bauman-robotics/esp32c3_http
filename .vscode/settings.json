@@ -1,5 +1,5 @@
 {
-    "idf.adapterTargetName": "esp32c3",
+    "idf.adapterTargetName": "esp32c6",
     "idf.port": "/dev/ttyACM0",
     "idf.flashType": "UART",
     "files.associations": {
@@ -22,6 +22,10 @@
         "unordered_map": "cpp",
         "utility": "cpp",
         "cerrno": "cpp",
-        "led_strip.h": "c"
-    }
+        "led_strip.h": "c",
+        "cstdint": "cpp"
+    },
+    "idf.openOcdConfigs": [
+        "board/esp32c6-builtin.cfg"
+    ]
 }

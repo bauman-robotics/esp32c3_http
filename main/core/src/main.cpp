@@ -12,6 +12,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "ina226.h"
+#include "i2c.h"
+#include "driver/i2c.h"
 
 //========================================
 const char *TAG = "esp32";
@@ -66,6 +69,20 @@ void uart_sin_send_task(void *pvParameters) {
 }
 //=====================================================================================
 
+void ina226_task(void *pvParameters) {
+    while (1) {
+
+        float volt = ina226_voltage(I2C_CONTROLLER_1);
+        int16_t volt_i = (int16_t)(volt * 10);
+        
+        ESP_LOGI(TAG, "volt_i * 10 = %" PRId16, volt_i);
+
+        vTaskDelay(pdMS_TO_TICKS(INA226_PERIOD_MS)); // Задержка на 1 секунду
+    }
+}
+
+//=====================================================================================
+
 // Ваша собственная функция вывода логов
 // int my_log_vprintf(const char *fmt, va_list args) {
 //     return vprintf(fmt, args);
@@ -95,6 +112,12 @@ extern "C" void app_main(void) {
     
     var.signal_period        = SOCKET_SEND_PERIOD_MS;
     var.count_vals_in_packet = NUM_ELEMENT_IN_PACKET;
+
+    #ifdef INA226_ENABLE
+        i2c_init(I2C_CONTROLLER_0, I2C_SDA_PIN, I2C_SCL_PIN);
+        ina226_init(I2C_CONTROLLER_0);
+    #endif 
+
     #ifdef BINARY_PACKET 
         var.packet.type_hex = 1;
     #else 
@@ -119,6 +142,10 @@ extern "C" void app_main(void) {
 
     #ifdef SEND_UART_SIN_ENABLE  
         xTaskCreate(uart_sin_send_task, "Uart_task", 2048, NULL, 5, NULL);   
+    #endif 
+
+    #ifdef INA226_ENABLE    
+        xTaskCreate(ina226_task, "ina226_task", 2048, NULL, 5, NULL);
     #endif 
 
     //=========================================

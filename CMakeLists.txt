@@ -9,6 +9,7 @@ project(esp32c3_http)
 list(APPEND EXTRA_COMPONENT_DIRS components/protocol_examples_common)
 list(APPEND EXTRA_COMPONENT_DIRS components/espressif__led_strip)
 list(APPEND EXTRA_COMPONENT_DIRS components/esp-tls)
-
+list(APPEND EXTRA_COMPONENT_DIRS components/esp_driver_i2c)
+list(APPEND EXTRA_COMPONENT_DIRS components/i2c)
 # set(EXTRA_COMPONENT_DIRS components)
 
