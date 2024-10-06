@@ -15,6 +15,8 @@
 #include "ina226.h"
 #include "i2c.h"
 #include "driver/i2c.h"
+//#include "driver/i2c_master.h"
+
 
 //========================================
 const char *TAG = "esp32";
@@ -72,12 +74,16 @@ void uart_sin_send_task(void *pvParameters) {
 void ina226_task(void *pvParameters) {
     while (1) {
 
-        float volt = ina226_voltage(I2C_CONTROLLER_1);
-        int16_t volt_i = (int16_t)(volt * 10);
-        
-        ESP_LOGI(TAG, "volt_i * 10 = %" PRId16, volt_i);
+        if (!var.ina226.is_init) {
+            var.ina226.is_init = ina226_init(I2C_CONTROLLER_0);
+        }
+        //float volt = ina226_voltage(I2C_CONTROLLER_0);
 
-        vTaskDelay(pdMS_TO_TICKS(INA226_PERIOD_MS)); // Задержка на 1 секунду
+        // int16_t volt_i = (int16_t)(volt * 10);
+        
+        // ESP_LOGI(TAG, "volt_i * 10 = %" PRId16, volt_i);
+
+        vTaskDelay(pdMS_TO_TICKS(INA226_PERIOD_MS)); // Задержка на xx секунд
     }
 }
 
@@ -115,7 +121,9 @@ extern "C" void app_main(void) {
 
     #ifdef INA226_ENABLE
         i2c_init(I2C_CONTROLLER_0, I2C_SDA_PIN, I2C_SCL_PIN);
-        ina226_init(I2C_CONTROLLER_0);
+        var.ina226.is_init = ina226_init(I2C_CONTROLLER_0);
+        ESP_LOGI(TAG, "var.ina226.is_init = %d", (int)var.ina226.is_init);
+
     #endif 
 
     #ifdef BINARY_PACKET 

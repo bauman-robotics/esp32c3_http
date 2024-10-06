@@ -37,10 +37,17 @@ typedef struct {
 //======================================================================
 
 typedef struct {   
+    int16_t voltage_i;
+    bool is_init;
+    bool voltage_is_valid;
+} ina226_t;
+
+typedef struct {   
     Led_Type leds;
     int signal_period;  // send period 
     int count_vals_in_packet;      
     packet_type packet;
+    ina226_t ina226;
 } variables;
 
 extern variables var;

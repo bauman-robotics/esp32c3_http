@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "variables.h"
 #include "main.h"
+#include "ina226.h"
 //=================================
 
 // Очередь для передачи данных
@@ -120,9 +121,28 @@ void Generate_Signal(SignalData *signal_data) {
             signal_data->data[i] = calc_sawtooth_socket_data();
         }
     } else if (var.leds.blue) {
-        for (int i = 0; i < var.count_vals_in_packet; i++) {
-            signal_data->data[i] = calc_triangle_socket_data();
-        }
+        // for (int i = 0; i < var.count_vals_in_packet; i++) {
+        //     //signal_data->data[i] = calc_triangle_socket_data();
+        // }
+
+        int index = 0; // Индекс для заполнения массива данных
+
+        for (int i = 0; i < var.count_vals_in_packet; ) { // Используем i только для условия цикла
+            Get_Voltage(); 
+            if (var.ina226.voltage_is_valid) {
+                signal_data->data[index] = var.ina226.voltage_i;
+                index++; // Увеличиваем индекс только при валидном напряжении
+            }
+            
+            // Убедитесь, что index не превышает размер массива
+            if (index >= var.count_vals_in_packet) {
+                break; // Выходим из цикла, если массив заполнен
+            }
+
+            // Задержка
+            vTaskDelay(((float)var.signal_period / var.count_vals_in_packet) / portTICK_PERIOD_MS); 
+        }        
+
     }
     // Установка заголовка
     Set_Header(signal_data);

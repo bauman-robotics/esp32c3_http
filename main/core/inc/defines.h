@@ -45,4 +45,5 @@
 #define INA226_ENABLE
 #define I2C_SDA_PIN (21)
 #define I2C_SCL_PIN (22)
-#define INA226_PERIOD_MS (100)
+#define INA226_PERIOD_MS (2000)
+#define INA226_DATA_TO_SOCKET

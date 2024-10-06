@@ -11,6 +11,8 @@
 
 #define portTICK_RATE_MS (portTICK_PERIOD_MS)
 
+static const char *TAG = "i2c";
+
 // i2c_master_dev_handle_t dev_handle;
 
 void i2c_init(uint8_t i2c_master_port, uint8_t sda_io_num, uint8_t scl_io_num)
@@ -33,6 +35,7 @@ void i2c_init(uint8_t i2c_master_port, uint8_t sda_io_num, uint8_t scl_io_num)
 	conf.sda_io_num       = sda_io_num;
 	conf.sda_pullup_en    = GPIO_PULLUP_ENABLE;
 	conf.scl_io_num       = scl_io_num;
+	conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
 	conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
 	conf.clk_flags        = 0;
 
@@ -43,6 +46,7 @@ void i2c_init(uint8_t i2c_master_port, uint8_t sda_io_num, uint8_t scl_io_num)
 	res = i2c_driver_install((i2c_port_t)i2c_master_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 	if (res != ESP_OK) printf("Error in i2c_driver_install()\r\n");
 
+	printf("i2c_init()  ESP_OK \r\n");
 }
 
 //======================================================================================
@@ -149,6 +153,8 @@ uint8_t i2c_read_byte(uint8_t i2c_master_port, uint8_t address, uint8_t command)
 
 uint16_t i2c_read_short(uint8_t i2c_master_port, uint8_t address, uint8_t command)
 {
+	//ESP_LOGI(TAG, "i2c_read_short__start______________");
+	//ESP_LOGI(TAG, "i2c_write_buf__start");
 	i2c_write_buf((i2c_port_t)i2c_master_port, address, command, NULL, 0);
 
 	uint16_t data;
@@ -158,17 +164,20 @@ uint16_t i2c_read_short(uint8_t i2c_master_port, uint8_t address, uint8_t comman
 	i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
 	i2c_master_read(cmd, (uint8_t *)&data, 2, (i2c_ack_type_t)ACK_VAL);
 	i2c_master_stop(cmd);
-
+	//ESP_LOGI(TAG, "i2c_master_cmd_begin__start");
 	esp_err_t ret = i2c_master_cmd_begin((i2c_port_t)i2c_master_port, cmd, 1000 / portTICK_RATE_MS);
+	//ESP_LOGI(TAG, "i2c_cmd_link_delete__start");
 	i2c_cmd_link_delete(cmd);
 
 
 	if (ret == ESP_OK) {
-
+		//ESP_LOGI(TAG, "i2c_read_short______________________ESP_OK");
 	} else if (ret == ESP_ERR_TIMEOUT) {
-		//ESP_LOGW(TAG, "Bus is busy");
+		ESP_LOGW(TAG, "Bus is busy");
+		return 65535;
 	} else {
-		//ESP_LOGW(TAG, "Read failed");
+		ESP_LOGW(TAG, "Read failed");
+		return 65535;
 	}
 	return(__bswap16(data));
 }
