@@ -15,8 +15,7 @@
 #include "ina226.h"
 #include "i2c.h"
 #include "driver/i2c.h"
-//#include "driver/i2c_master.h"
-
+#include "timer_e.h"
 
 //========================================
 const char *TAG = "esp32";
@@ -71,34 +70,36 @@ void uart_sin_send_task(void *pvParameters) {
 }
 //=====================================================================================
 
-void ina226_task(void *pvParameters) {
+void ina226_init_task(void *pvParameters) {
     while (1) {
 
         if (!var.ina226.is_init) {
             var.ina226.is_init = ina226_init(I2C_CONTROLLER_0);
+        } else {
+            // Завершение задачи
+            vTaskDelete(NULL);
         }
-        //float volt = ina226_voltage(I2C_CONTROLLER_0);
 
-        // int16_t volt_i = (int16_t)(volt * 10);
-        
-        // ESP_LOGI(TAG, "volt_i * 10 = %" PRId16, volt_i);
-
-        vTaskDelay(pdMS_TO_TICKS(INA226_PERIOD_MS)); // Задержка на xx секунд
+        vTaskDelay(pdMS_TO_TICKS(INA226_TRY_INIT_PERIOD_MS)); // Задержка на xx секунд
     }
 }
-
 //=====================================================================================
 
-// Ваша собственная функция вывода логов
-// int my_log_vprintf(const char *fmt, va_list args) {
-//     return vprintf(fmt, args);
-// }
+void log_task(void *pvParameters) {
+
+    while (1) {
+        
+        //ESP_LOGI(TAG, "var.signal_period= %"                PRId16, (uint16_t)var.signal_period);
+        //ESP_LOGI(TAG, "var.count_vals_in_packet= %"         PRId16, var.count_vals_in_packet);
+        //ESP_LOGI(TAG, "var.ina226.get_voltage_period_mks= %" PRId16, var.ina226.get_voltage_period_mks);        
+        vTaskDelay(pdMS_TO_TICKS(LOG_TASK_PERIOD_MS)); // Задержка на xx секунд
+      
+    }
+}
 //=====================================================================================
 
 extern "C" void app_main(void) {
 
-    // // Установите свою функцию временных меток
-    // esp_log_set_vprintf(my_log_vprintf);
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     nvs_flash_init();
@@ -118,6 +119,8 @@ extern "C" void app_main(void) {
     
     var.signal_period        = SOCKET_SEND_PERIOD_MS;
     var.count_vals_in_packet = NUM_ELEMENT_IN_PACKET;
+    
+    init_timer(); 
 
     #ifdef INA226_ENABLE
         i2c_init(I2C_CONTROLLER_0, I2C_SDA_PIN, I2C_SCL_PIN);
@@ -153,25 +156,27 @@ extern "C" void app_main(void) {
     #endif 
 
     #ifdef INA226_ENABLE    
-        xTaskCreate(ina226_task, "ina226_task", 2048, NULL, 5, NULL);
+        xTaskCreate(ina226_init_task, "ina226_init_task", 2048, NULL, 5, NULL);
+    #endif 
+
+    #ifdef LOG_TASK_ENABLE    
+        xTaskCreate(log_task, "log_task", 2048, NULL, 5, NULL);
     #endif 
 
     //=========================================
-    xQueueSignalData = xQueueCreate(10, sizeof(SignalData));
-    xQueueSignalReady = xQueueCreate(10, sizeof(uint8_t));
+    xQueueSignalData    = xQueueCreate(10, sizeof(SignalData));
+    xQueueSignalReady   = xQueueCreate(10, sizeof(uint8_t));
+  
 
-    if (xQueueSignalData == NULL || xQueueSignalReady == NULL) {
+    if (xQueueSignalData  == NULL || xQueueSignalReady == NULL ) {
         ESP_LOGE(TAG, "Failed to create queues");
         return;
     }
     //=========================================
     
-
     #ifdef SIGNAL_GEN_TASK_EN  
         xTaskCreate(signal_gen_task, "signal_gen_task", 2048, NULL, 5, NULL);   
     #endif 
-
-
 
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000)); // Добавьте задержку, чтобы избежать тайм-аута задачи

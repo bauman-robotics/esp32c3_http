@@ -42,8 +42,10 @@
 
 //#define ESP32_C3
 
+#define LOG_TASK_ENABLE
+#define LOG_TASK_PERIOD_MS (1000)
+
 #define INA226_ENABLE
 #define I2C_SDA_PIN (21)
 #define I2C_SCL_PIN (22)
-#define INA226_PERIOD_MS (2000)
-#define INA226_DATA_TO_SOCKET
+

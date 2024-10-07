@@ -26,12 +26,7 @@
 #include "variables.h"
 #include "signal_gen.h"
 
-
 static const char *TAG = "ex";
-
-
-//static char buf[80] ={0};
-// static int signal_forms;
 
 void socket_task(void *pvParameters);
 void Pars_Socket_Data(char * rx_buf);
@@ -39,7 +34,7 @@ int Add_Number_To_String(char *str, int number, const char *prefix, int *element
 void process_keyword(char *rx_buf, const char *keyword, int *value);
 
 //=== Отправка пакетов и Асинхронное чтение ===================================================================================
-
+//static uint8_t flag_go = 1; 
 void socket_task(void *pvParameters) {
 
     char rx_buffer[128];
@@ -102,19 +97,19 @@ void socket_task(void *pvParameters) {
             //======================================================================
 
             //=== Генерация данных для отправки ====================================
-            int8_t ready_flag = 0;
+            uint8_t ready_flag = 0;
             // Получение флага готовности из очереди
-            if (xQueueReceive(xQueueSignalReady, &ready_flag, portMAX_DELAY) == pdTRUE) {
+            if (xQueueReceive(xQueueSignalReady, &ready_flag, portMAX_DELAY)) {
                 if (ready_flag == 1) {
-                            
+                    //ESP_LOGI(TAG, "ready_flag Received ");        
                     #ifdef DEBUG_LOG
                         ESP_LOGI(TAG, "Data is ready!");
                     #endif 
 
                     // Получение данных из очереди
                     SignalData signal_data;
-                    if (xQueueReceive(xQueueSignalData, &signal_data, portMAX_DELAY) == pdTRUE) {
-
+                    if (xQueueReceive(xQueueSignalData, &signal_data, portMAX_DELAY)) {
+                        //ESP_LOGI(TAG, "Received signal data:");
                         #ifdef DEBUG_LOG
                             ESP_LOGI(TAG, "Received signal data:");
                             ESP_LOGI(TAG, "Receive_Q_Signal data[0]=%d", signal_data.data[0]);
@@ -131,12 +126,12 @@ void socket_task(void *pvParameters) {
 
                                 //ESP_LOGI(TAG, "Data[%d]: %d", i, signal_data.data[i]);
                             }
-                            
+
                             //=== Отправка пакета ====
                             err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
                         }
                         else {
-                            err = send(sock, &signal_data, signal_data.header.full_packet_size, MSG_NOSIGNAL); 
+                            err = send(sock, &signal_data, signal_data.header.full_packet_size, MSG_NOSIGNAL);                          
                         } 
 
                         if (err < 0) {
@@ -153,7 +148,7 @@ void socket_task(void *pvParameters) {
                             #endif 
                         }
                         var.packet.buf[0] = 0;
-                        var.packet.count_el = 0;     
+                        var.packet.count_el = 0;    
 
                     } else {
                         ESP_LOGI(TAG, "Failed to receive signal data!");
@@ -161,28 +156,7 @@ void socket_task(void *pvParameters) {
                 }
             } else {
                 ESP_LOGI(TAG, "Failed to receive ready flag!");
-            }
-
-            // // Получение значения из очереди
-            // if (xQueueReceive(xQueueSignalReady, &signal_data.ready, portMAX_DELAY) == pdPASS) {
-            //     //ESP_LOGI(TAG, "Received value from Queue: %d\n", signal_forms);
-            // } else {
-            //     ESP_LOGE(TAG, "Failed to receive value from Queue!");
-            // }
-            // int is_buf_full = Add_Number_To_String(var.packet.buf, signal_forms, DATA_PREFIX, &var.packet.count_el, var.count_vals_in_packet); 
-
-            // if (is_buf_full) {
-            //     int err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
-            //     if (err < 0) {
-            //         ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-            //         break;  // Выход из внутреннего цикла и попытка переподключения
-            //     } else {
-            //         ESP_LOGI(TAG, "> %s", var.packet.buf);
-            //     }
-            //     var.packet.buf[0] = 0;
-            //     var.packet.count_el = 0;                
-            // }            
-
+            }     
 
             vTaskDelay(var.signal_period / portTICK_PERIOD_MS);
             //======================================================================
@@ -212,6 +186,7 @@ void Pars_Socket_Data(char *rx_buf) {
     const char *options[] = {"Red", "Green", "Blue", "HEX", "ASCII"};
     int count = sizeof(options) / sizeof(options[0]);
     // Анализ строки и установка флагов
+    uint8_t flag_go = 0;
     for (int i = 0; i < count; i++) {
         //if (strstr(rx_buf, options[i]) != NULL) {
         if (strcasestr(rx_buf, options[i]) != NULL) {            
@@ -237,7 +212,8 @@ void Pars_Socket_Data(char *rx_buf) {
 
                     var.leds.red   = 0;
                     var.leds.green = 0;
-                    var.leds.blue  = 1;                    
+                    var.leds.blue  = 1;   
+    
                     break;
                 //===================== 
                 case 3:

@@ -8,7 +8,8 @@ idf_component_register(
        "core/src/signal_gen.cpp"    
        "core/src/variables.cpp"   
        "core/src/i2c.cpp"  
-       "core/src/ina226.cpp"                            
+       "core/src/ina226.cpp"    
+       "core/src/timer_e.cpp"                                
     INCLUDE_DIRS 
         "core/inc"
 )

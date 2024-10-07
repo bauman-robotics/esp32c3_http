@@ -118,7 +118,7 @@ esp_err_t i2c_write_buf(uint8_t i2c_master_port, uint8_t address, uint8_t comman
 	if (ret == ESP_OK) {
 		//printf("i2c_write successful\r\n");
 	} else {
-		printf("i2c_write_buf failed\r\n");
+		//printf("i2c_write_buf failed\r\n");
 	}
 
 	return(ret);
@@ -173,10 +173,10 @@ uint16_t i2c_read_short(uint8_t i2c_master_port, uint8_t address, uint8_t comman
 	if (ret == ESP_OK) {
 		//ESP_LOGI(TAG, "i2c_read_short______________________ESP_OK");
 	} else if (ret == ESP_ERR_TIMEOUT) {
-		ESP_LOGW(TAG, "Bus is busy");
+		//ESP_LOGW(TAG, "Bus is busy");
 		return 65535;
 	} else {
-		ESP_LOGW(TAG, "Read failed");
+		//ESP_LOGW(TAG, "Read failed");
 		return 65535;
 	}
 	return(__bswap16(data));

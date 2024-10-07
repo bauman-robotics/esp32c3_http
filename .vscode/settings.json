@@ -23,7 +23,10 @@
         "utility": "cpp",
         "cerrno": "cpp",
         "led_strip.h": "c",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "algorithm": "cpp",
+        "__bit_reference": "cpp",
+        "chrono": "cpp"
     },
     "idf.openOcdConfigs": [
         "board/esp32c6-builtin.cfg"

@@ -9,6 +9,11 @@
 #include "variables.h"
 #include "main.h"
 #include "ina226.h"
+
+#include "esp_timer.h" // Для высокоточных таймеров
+#include "rom/ets_sys.h"  // Для esp_rom_delay_us
+#include "timer_e.h"
+
 //=================================
 
 // Очередь для передачи данных
@@ -55,6 +60,7 @@ int16_t calc_sine_uart_data()
     return sine_value;
 }
 //===============================================================
+
 int16_t calc_sine_socket_data()
 {
     static uint32_t s_time = 0;
@@ -67,8 +73,6 @@ int16_t calc_sine_socket_data()
 
      return sine_value;
 }
-
-
 //===============================================================
 
 int16_t calc_sawtooth_socket_data()
@@ -112,6 +116,11 @@ int16_t calc_triangle_socket_data()
 
 // Функция для генерации сигнала
 void Generate_Signal(SignalData *signal_data) {
+
+    static uint64_t timer_period_mks = (uint64_t)var.ina226.get_voltage_period_mks;
+    static uint64_t old_timer_period_mks = timer_period_mks;    
+    
+
     if (var.leds.green) {
         for (int i = 0; i < var.count_vals_in_packet; i++) {
             signal_data->data[i] = calc_sine_socket_data();
@@ -125,24 +134,50 @@ void Generate_Signal(SignalData *signal_data) {
         //     //signal_data->data[i] = calc_triangle_socket_data();
         // }
 
-        int index = 0; // Индекс для заполнения массива данных
+        if (var.ina226.is_init) {
 
-        for (int i = 0; i < var.count_vals_in_packet; ) { // Используем i только для условия цикла
-            Get_Voltage(); 
-            if (var.ina226.voltage_is_valid) {
-                signal_data->data[index] = var.ina226.voltage_i;
-                index++; // Увеличиваем индекс только при валидном напряжении
-            }
-            
-            // Убедитесь, что index не превышает размер массива
-            if (index >= var.count_vals_in_packet) {
-                break; // Выходим из цикла, если массив заполнен
-            }
+            int index = 0; // Индекс для заполнения массива данных
 
-            // Задержка
-            vTaskDelay(((float)var.signal_period / var.count_vals_in_packet) / portTICK_PERIOD_MS); 
-        }        
+            for (int i = 0; i < var.count_vals_in_packet; ) { // Используем i только для условия цикла
 
+                //==========================================================
+                // Задержка
+                var.ina226.get_voltage_period_mks = (uint64_t)(1000 * (float)var.signal_period / var.count_vals_in_packet);
+
+                timer_period_mks = var.ina226.get_voltage_period_mks;
+                
+                if (timer_period_mks != old_timer_period_mks) {
+                    old_timer_period_mks = timer_period_mks;
+
+                    if (var.timer.in_work) {
+                        restart_timer(timer_period_mks);
+                        ESP_LOGI(TAG, "_______________start_timer_mks : %" PRId64, timer_period_mks);
+                    }
+                }
+
+                if (!var.timer.in_work) {
+                    start_timer_mks(timer_period_mks); 
+                    ESP_LOGI(TAG, "_________________start_timer_mks : %" PRId64, timer_period_mks);
+                }
+
+                while (!var.timer.ready) {
+
+                }
+                var.timer.ready = 0;
+                //==========================================================
+
+                Get_Voltage(); 
+                if (var.ina226.voltage_is_valid) {
+                    signal_data->data[index] = var.ina226.voltage_i;
+                    index++; // Увеличиваем индекс только при валидном напряжении                        
+                }
+
+                // Убедитесь, что index не превышает размер массива
+                if (index >= var.count_vals_in_packet) {
+                    break; // Выходим из цикла, если массив заполнен
+                }
+            }  
+        }
     }
     // Установка заголовка
     Set_Header(signal_data);
@@ -161,26 +196,22 @@ void Generate_Signal(SignalData *signal_data) {
 
 void signal_gen_task(void *pvParameters) {
 
-     while (1) {
-
-        //ESP_LOGI(TAG, "Socket created, connecting to %s:%d", SOCKET_IP, SOCKET_PORT);
-        //ESP_LOGI(TAG, "Successfully connected");
+   
+    while (1) {
 
         if (var.leds.flags == LEDS_CONNECT_TO_SERVER_STATE) {
-
-           
 
             Generate_Signal(&signal_data);
             
             // Отправка данных сигнала в очередь
-            if (xQueueSend(xQueueSignalData, &signal_data, portMAX_DELAY) == pdPASS) {
+            if (xQueueSend(xQueueSignalData, &signal_data, portMAX_DELAY)) {
                 //ESP_LOGI(TAG, "Signal data sent to Queue successfully!");
             } else {
                 ESP_LOGI(TAG, "Failed to send signal data!");
             }
 
             // Уведомление о готовности данных
-            if (xQueueSend(xQueueSignalReady, &signal_data.ready, portMAX_DELAY) == pdPASS) {
+            if (xQueueSend(xQueueSignalReady, &signal_data.ready, portMAX_DELAY)) {
                 //ESP_LOGI(TAG, "Ready flag sent to Queue successfully!");
             } else {
                 ESP_LOGI(TAG, "Failed to send ready flag!");
@@ -188,11 +219,17 @@ void signal_gen_task(void *pvParameters) {
             //ESP_LOGI(TAG, "Signal data[0]=%d", signal_data.data[0]);
             //ESP_LOGI(TAG, "Signal data[1]=%d", signal_data.data[1]);     
         }
-        vTaskDelay(var.signal_period / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
 
-        // Пауза в 1 секунде между отправками
-        //vTaskDelay(pdMS_TO_TICKS(1000));
+        int delay_ms = var.signal_period;
+        if (!var.leds.blue) {            
+            delay_ms = var.signal_period;        
+        } else {
+            delay_ms = 0;
+        }
+        vTaskDelay(pdMS_TO_TICKS(delay_ms));
 
+        //vTaskDelay(var.signal_period / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
+        //vTaskDelay(pdMS_TO_TICKS(var.signal_period));  // Подождать перед повторной попыткой
     }
 }
 //==============================================
