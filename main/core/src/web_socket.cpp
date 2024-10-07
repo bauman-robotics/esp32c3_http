@@ -31,10 +31,11 @@ static const char *TAG = "ex";
 void socket_task(void *pvParameters);
 void Pars_Socket_Data(char * rx_buf);
 int Add_Number_To_String(char *str, int number, const char *prefix, int *element_count, int max_elements); 
+int Add_Number_To_String_Float(char *str, float number_f, const char *prefix, int *element_count, int max_elements); 
 void process_keyword(char *rx_buf, const char *keyword, int *value);
 
 //=== Отправка пакетов и Асинхронное чтение ===================================================================================
-//static uint8_t flag_go = 1; 
+
 void socket_task(void *pvParameters) {
 
     char rx_buffer[128];
@@ -121,9 +122,13 @@ void socket_task(void *pvParameters) {
                         if (!var.packet.type_hex) {
                             //=== Заполнили стороку пакета данными ===
                             for (int i = 0; i < var.count_vals_in_packet; i++) {
-                                //int is_buf_full = 
-                                Add_Number_To_String(var.packet.buf, signal_data.data[i], DATA_PREFIX, &var.packet.count_el, var.count_vals_in_packet); 
-
+                                
+                                //Add_Number_To_String(var.packet.buf, signal_data.data[i], DATA_PREFIX_INT, &var.packet.count_el, var.count_vals_in_packet); 
+                                #ifndef DATA_TYPE_FLOAT    
+                                    Add_Number_To_String(var.packet.buf, signal_data.data[i], DATA_PREFIX_INT, &var.packet.count_el, var.count_vals_in_packet); 
+                                #else 
+                                    Add_Number_To_String_Float(var.packet.buf, signal_data.data_f[i], DATA_PREFIX_FLOAT, &var.packet.count_el, var.count_vals_in_packet); 
+                                #endif
                                 //ESP_LOGI(TAG, "Data[%d]: %d", i, signal_data.data[i]);
                             }
 
@@ -131,7 +136,12 @@ void socket_task(void *pvParameters) {
                             err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
                         }
                         else {
-                            err = send(sock, &signal_data, signal_data.header.full_packet_size, MSG_NOSIGNAL);                          
+                            //err = send(sock, &signal_data, signal_data.header.full_packet_size, MSG_NOSIGNAL);      
+                            #ifndef DATA_TYPE_FLOAT 
+                                err = send(sock, &signal_data, signal_data.header_int.full_packet_size, MSG_NOSIGNAL);    
+                            #else 
+                                err = send(sock, &signal_data, signal_data.header_float.full_packet_size, MSG_NOSIGNAL);  
+                            #endif              
                         } 
 
                         if (err < 0) {
@@ -186,7 +196,7 @@ void Pars_Socket_Data(char *rx_buf) {
     const char *options[] = {"Red", "Green", "Blue", "HEX", "ASCII"};
     int count = sizeof(options) / sizeof(options[0]);
     // Анализ строки и установка флагов
-    uint8_t flag_go = 0;
+
     for (int i = 0; i < count; i++) {
         //if (strstr(rx_buf, options[i]) != NULL) {
         if (strcasestr(rx_buf, options[i]) != NULL) {            
@@ -265,6 +275,30 @@ void process_keyword(char *rx_buf, const char *keyword, int *value) {
 int Add_Number_To_String(char *str, int number, const char *prefix, int *element_count, int max_elements) {
     char number_str[12]; // Буфер для хранения строкового представления числа
     sprintf(number_str, "%d%s", number, " "); // Конвертация числа в строку
+
+    // Добавляем префикс и число
+    strcat(str, prefix);
+    strcat(str, number_str);
+
+    // Увеличиваем счетчик количества элементов
+    (*element_count)++;
+
+    //ESP_LOGI(TAG, "Add data to string %d", number);
+
+    // Проверяем, достигли ли мы максимального количества элементов
+    if (*element_count >= max_elements) {
+        //ESP_LOGI(TAG, "Packet full");
+        return 1; // Строка заполнена        
+    }
+
+    return 0; // Строка еще не заполнена
+}
+//=================================================================================
+
+// Функция для добавления числа в строку и проверки заполненности
+int Add_Number_To_String_Float(char *str, float number_f, const char *prefix, int *element_count, int max_elements) {
+    char number_str[12]; // Буфер для хранения строкового представления числа
+    sprintf(number_str, "%.2f%s", number_f, " "); // Конвертация числа в строку
 
     // Добавляем префикс и число
     strcat(str, prefix);

@@ -28,15 +28,18 @@
 
 #define SIGNAL_GEN_TASK_EN
 
-#define DATA_PREFIX "d "
+#define DATA_PREFIX_INT   "d "
+#define DATA_PREFIX_FLOAT "f "
 #define NUM_ELEMENT_IN_PACKET       (10)
 #define MAX_NUM_ELEMENT_IN_PACKET   (1000)
 
 #define SOCKET_BUF_TX_SIZE    (1500)
 
-#define BYNARY_PACKET_KEY (2255)
+#define BINARY_PACKET_INT_KEY (2255)
+#define BINARY_PACKET_FLOAT_KEY (2233)
 
 #define BINARY_PACKET 
+#define DATA_TYPE_FLOAT 
 
 //#define DEBUG_LOG
 
@@ -48,4 +51,5 @@
 #define INA226_ENABLE
 #define I2C_SDA_PIN (21)
 #define I2C_SCL_PIN (22)
+
 

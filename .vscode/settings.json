@@ -26,7 +26,8 @@
         "cstdint": "cpp",
         "algorithm": "cpp",
         "__bit_reference": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "variant": "cpp"
     },
     "idf.openOcdConfigs": [
         "board/esp32c6-builtin.cfg"

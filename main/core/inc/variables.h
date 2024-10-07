@@ -16,11 +16,17 @@ typedef struct {
 } PacketHeader;
 //======================================================================
 typedef struct {
-    PacketHeader header; // Заголовок
+    #ifndef DATA_TYPE_FLOAT
+    PacketHeader header_int; // Заголовок
     int16_t data[MAX_NUM_ELEMENT_IN_PACKET]; // Массив для хранения данных сигнала
-    uint8_t ready;    // Флаг готовности данных  
-    uint8_t go; 
-} SignalData;
+    #else 
+    PacketHeader header_float; // Заголовок
+    float   data_f[MAX_NUM_ELEMENT_IN_PACKET]; // Массив для хранения данных сигнала
+    #endif 
+
+    uint8_t ready;    // Флаг готовности данных 
+
+ } SignalData;
 //======================================================================
 typedef struct {
     bool red;
@@ -39,6 +45,7 @@ typedef struct {
 
 typedef struct {   
     int16_t voltage_i;
+    float   voltage_f;    
     bool is_init;
     bool voltage_is_valid;
     int64_t get_voltage_period_mks; 
@@ -57,6 +64,7 @@ typedef struct {
     packet_type packet;
     ina226_t ina226;
     Timer_t timer;
+    //bool data_type_float; 
 } variables;
 
 extern variables var;

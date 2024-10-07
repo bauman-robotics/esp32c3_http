@@ -147,7 +147,7 @@ extern "C" void app_main(void) {
     //=========================================
 
     #ifdef SOCKET_CLIENT_ENABLE    
-        xTaskCreate(socket_task, "socket_task", 4096, NULL, 5, NULL);
+        xTaskCreate(socket_task, "socket_task", 4096 + 2048, NULL, 5, NULL);
     #endif 
     //=========================================
 

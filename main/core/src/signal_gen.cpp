@@ -25,7 +25,9 @@ extern const char *TAG;
 int16_t calc_sine_post_data();
 int16_t calc_sine_uart_data();
 int16_t calc_sine_socket_data();
+float calc_sine_socket_data_float();
 int16_t calc_sawtooth_socket_data();
+float calc_sawtooth_socket_data_float();
 int16_t calc_triangle_socket_data();
 
 void signal_gen_task(void *pvParameters);
@@ -73,6 +75,21 @@ int16_t calc_sine_socket_data()
 
      return sine_value;
 }
+
+//===============================================================
+
+float calc_sine_socket_data_float()
+{
+    static uint32_t s_time = 0;
+
+    // Calculate the current time position in the cycle
+    float t = (float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * 2 * M_PI;
+    float sine_value = ((sin(t) * (AMPLITUDE / 2)) + (AMPLITUDE / 2));
+
+    s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
+
+     return sine_value;
+}
 //===============================================================
 
 int16_t calc_sawtooth_socket_data()
@@ -86,6 +103,21 @@ int16_t calc_sawtooth_socket_data()
 
     if (sawtooth_value < 1000) {
         sawtooth_value ++;
+    } else {
+        sawtooth_value = 0;
+    }
+
+    return sawtooth_value;
+}
+
+//===============================================================
+
+float calc_sawtooth_socket_data_float()
+{
+    static float sawtooth_value = 0;
+
+    if (sawtooth_value < 10) {
+        sawtooth_value += 0.01;
     } else {
         sawtooth_value = 0;
     }
@@ -123,16 +155,23 @@ void Generate_Signal(SignalData *signal_data) {
 
     if (var.leds.green) {
         for (int i = 0; i < var.count_vals_in_packet; i++) {
-            signal_data->data[i] = calc_sine_socket_data();
+
+            #ifndef DATA_TYPE_FLOAT     
+                signal_data->data[i] = calc_sine_socket_data();
+            #else
+                signal_data->data_f[i] = calc_sine_socket_data_float();          
+            #endif
         }
     } else if (var.leds.red) {
         for (int i = 0; i < var.count_vals_in_packet; i++) {
-            signal_data->data[i] = calc_sawtooth_socket_data();
+
+            #ifndef DATA_TYPE_FLOAT     
+                signal_data->data[i] = calc_sawtooth_socket_data();
+            #else
+                signal_data->data_f[i] = calc_sawtooth_socket_data_float();          
+            #endif            
         }
     } else if (var.leds.blue) {
-        // for (int i = 0; i < var.count_vals_in_packet; i++) {
-        //     //signal_data->data[i] = calc_triangle_socket_data();
-        // }
 
         if (var.ina226.is_init) {
 
@@ -168,7 +207,13 @@ void Generate_Signal(SignalData *signal_data) {
 
                 Get_Voltage(); 
                 if (var.ina226.voltage_is_valid) {
-                    signal_data->data[index] = var.ina226.voltage_i;
+
+                    #ifndef DATA_TYPE_FLOAT     
+                        signal_data->data[index] = var.ina226.voltage_i;
+                    #else
+                        signal_data->data_f[index] = var.ina226.voltage_f;          
+                    #endif       
+                    //
                     index++; // Увеличиваем индекс только при валидном напряжении                        
                 }
 
@@ -236,7 +281,12 @@ void signal_gen_task(void *pvParameters) {
 
 // Функция для установки заголовка
 void Set_Header(SignalData* signalData) {
-    signalData->header.type = (uint16_t)BYNARY_PACKET_KEY; // Установка типа сообщения
-    signalData->header.full_packet_size = var.count_vals_in_packet * sizeof(int16_t) + sizeof(PacketHeader); // Размер данных в байтах
+    #ifndef DATA_TYPE_FLOAT 
+        signalData->header_int.type = (uint16_t)BINARY_PACKET_INT_KEY; // Установка типа сообщения
+        signalData->header_int.full_packet_size = var.count_vals_in_packet * sizeof(int16_t) + sizeof(PacketHeader); // Размер данных в байтах
+    #else
+        signalData->header_float.type = (uint16_t)BINARY_PACKET_FLOAT_KEY; // Установка типа сообщения
+        signalData->header_float.full_packet_size = var.count_vals_in_packet * sizeof(float) + sizeof(PacketHeader); // Размер данных в байтах        
+    #endif
 }
 //==============================================

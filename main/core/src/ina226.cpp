@@ -71,9 +71,11 @@ float ina226_voltage(uint8_t i2c_master_port){
 		var.ina226.voltage_is_valid = 0;
 	}
 	var.ina226.voltage_i = iBusVoltage;
+
+	fBusVoltage = float(iBusVoltage) * 0.00125;
+	var.ina226.voltage_f = fBusVoltage;
+
 	#ifdef DEBUG_LOG
-		unsigned int iBusVoltage;
-		fBusVoltage = (iBusVoltage) * 0.00125;
 		printf("Bus Voltage = %.2fV, ", fBusVoltage);
 	#endif
 
