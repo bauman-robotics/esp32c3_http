@@ -49,6 +49,7 @@ typedef struct {
     bool is_init;
     bool voltage_is_valid;
     int64_t get_voltage_period_mks; 
+    bool get_current;
 } ina226_t;
 
 //======================================================================
@@ -56,6 +57,14 @@ typedef struct {
     bool ready;
     bool in_work;
 } Timer_t;
+
+//======================================================================
+typedef struct {
+    int order_V;
+    int order_I;
+    bool enabled;
+} filter_t;
+//======================================================================
 
 typedef struct {   
     Led_Type leds;
@@ -65,6 +74,7 @@ typedef struct {
     ina226_t ina226;
     Timer_t timer;
     //bool data_type_float; 
+    filter_t filter;
 } variables;
 
 extern variables var;

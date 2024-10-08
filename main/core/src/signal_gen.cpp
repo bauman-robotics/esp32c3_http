@@ -204,8 +204,12 @@ void Generate_Signal(SignalData *signal_data) {
                 }
                 var.timer.ready = 0;
                 //==========================================================
-
-                Get_Voltage(); 
+                if (!var.ina226.get_current) {
+                    Get_Voltage(); 
+                } else {
+                    Get_Current();
+                }
+                
                 if (var.ina226.voltage_is_valid) {
 
                     #ifndef DATA_TYPE_FLOAT     

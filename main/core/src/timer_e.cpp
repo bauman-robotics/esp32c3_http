@@ -14,7 +14,7 @@ esp_err_t stop_timer();
 
 // Callback функция для таймера
 void timer_callback(void* arg) {
-    static int count = 0;
+
     //ESP_LOGI(TAG, "__________________________________________timer_callback= %" PRId16, count); 
 
     var.timer.ready = 1;

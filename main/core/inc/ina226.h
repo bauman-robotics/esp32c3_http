@@ -40,5 +40,6 @@ float ina226_current(uint8_t i2c_master_port);
 float ina226_power(uint8_t i2c_master_port);
 
 void Get_Voltage(); 
+void Get_Current();
 
 #endif

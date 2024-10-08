@@ -52,4 +52,12 @@
 #define I2C_SDA_PIN (21)
 #define I2C_SCL_PIN (22)
 
+#define INA226_CFG_REG_VAL (0x4127) // Average over 4 Samples
+//#define INA226_CFG_REG_VAL (0x4527) // Average over 16 Samples
+//#define INA226_CFG_REG_VAL (0x4f27) // Average over 1024 Samples
 
+//#define GET_CURRENT_DEFAULT
+
+#define FILTER_I_V_ENABLE 
+#define FILTER_ORDER_I (100)
+#define FILTER_ORDER_V (100)

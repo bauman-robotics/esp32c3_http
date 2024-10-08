@@ -119,7 +119,12 @@ extern "C" void app_main(void) {
     
     var.signal_period        = SOCKET_SEND_PERIOD_MS;
     var.count_vals_in_packet = NUM_ELEMENT_IN_PACKET;
-    
+    #ifdef GET_CURRENT_DEFAULT
+        var.ina226.get_current = 1;
+    #else 
+        var.ina226.get_current = 0;
+    #endif 
+
     init_timer(); 
 
     #ifdef INA226_ENABLE
@@ -161,6 +166,14 @@ extern "C" void app_main(void) {
 
     #ifdef LOG_TASK_ENABLE    
         xTaskCreate(log_task, "log_task", 2048, NULL, 5, NULL);
+    #endif 
+
+    var.filter.order_V = FILTER_ORDER_V;
+    var.filter.order_I = FILTER_ORDER_I;
+    #ifdef FILTER_I_V_ENABLE
+        var.filter.enabled = 1;
+    #else 
+        var.filter.enabled = 0;
     #endif 
 
     //=========================================
