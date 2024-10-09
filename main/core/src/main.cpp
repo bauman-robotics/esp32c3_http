@@ -72,12 +72,19 @@ void uart_sin_send_task(void *pvParameters) {
 
 void ina226_init_task(void *pvParameters) {
     while (1) {
-
+        // ESP_LOGI(TAG, "var.ina226.is_init = %" PRId16, (int)var.ina226.is_init);
         if (!var.ina226.is_init) {
+
+            ina226_Calc_Coeff(); 
+            ina226_Calibr_Logs();
             var.ina226.is_init = ina226_init(I2C_CONTROLLER_0);
+            ESP_LOGI(TAG, "var.ina226.is_init = %" PRId16, (int)var.ina226.is_init);            
         } else {
             // Завершение задачи
+            var.ina226.task_handle = 0;
+            ESP_LOGI(TAG, " ina226 vTaskDelete ");            
             vTaskDelete(NULL);
+
         }
 
         vTaskDelay(pdMS_TO_TICKS(INA226_TRY_INIT_PERIOD_MS)); // Задержка на xx секунд
@@ -89,11 +96,18 @@ void log_task(void *pvParameters) {
 
     while (1) {
         
-        //ESP_LOGI(TAG, "var.signal_period= %"                PRId16, (uint16_t)var.signal_period);
+	    ESP_LOGI(TAG, "var.ina226.calibr.CALIBR_VAL= %d", (uint16_t)var.ina226.calibr.CALIBR_VAL);
+        //ESP_LOGI(TAG, "var.ina226.Current_coeff = %.4f", var.ina226.calibr.Current_coeff);    
+        ESP_LOGI(TAG, "var.ina226.LSB_mkA = %.001f", var.ina226.calibr.LSB_mA * 1000);   
+        ESP_LOGI(TAG, "var.ina226.current_i = %d", var.ina226.current_i);  
+        ESP_LOGI(TAG, "current_mA = %.4f", var.ina226.voltage_f);
+            
+        ina226_Calibr_Logs();
+
+        //ESP_LOGI(TAG, "CURRENT_COEF * 1000= %"                PRId16, (int)(INA226_CURRENT_COEFF * 1000));
         //ESP_LOGI(TAG, "var.count_vals_in_packet= %"         PRId16, var.count_vals_in_packet);
         //ESP_LOGI(TAG, "var.ina226.get_voltage_period_mks= %" PRId16, var.ina226.get_voltage_period_mks);        
-        vTaskDelay(pdMS_TO_TICKS(LOG_TASK_PERIOD_MS)); // Задержка на xx секунд
-      
+        vTaskDelay(pdMS_TO_TICKS(LOG_TASK_PERIOD_MS)); // Задержка на xx секунд      
     }
 }
 //=====================================================================================
@@ -128,10 +142,17 @@ extern "C" void app_main(void) {
     init_timer(); 
 
     #ifdef INA226_ENABLE
+        var.ina226.task_handle = NULL;    
+        ina226_Set_Coeff_Default();
+        
         i2c_init(I2C_CONTROLLER_0, I2C_SDA_PIN, I2C_SCL_PIN);
         var.ina226.is_init = ina226_init(I2C_CONTROLLER_0);
         ESP_LOGI(TAG, "var.ina226.is_init = %d", (int)var.ina226.is_init);
 
+        // ina226_Set_Coeff_Default();
+        // ina226_Calc_Coeff(); 
+        // ina226_Calibr_Logs();
+        
     #endif 
 
     #ifdef BINARY_PACKET 
@@ -161,7 +182,7 @@ extern "C" void app_main(void) {
     #endif 
 
     #ifdef INA226_ENABLE    
-        xTaskCreate(ina226_init_task, "ina226_init_task", 2048, NULL, 5, NULL);
+        xTaskCreate(ina226_init_task, "ina226_init_task", 2048, NULL, 5,  &var.ina226.task_handle);
     #endif 
 
     #ifdef LOG_TASK_ENABLE    

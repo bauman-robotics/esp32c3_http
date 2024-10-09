@@ -26,13 +26,15 @@
 #include "variables.h"
 #include "signal_gen.h"
 
+extern void ina226_init_task(void *pvParameters);
+
 static const char *TAG = "ex";
 
 void socket_task(void *pvParameters);
 void Pars_Socket_Data(char * rx_buf);
 int Add_Number_To_String(char *str, int number, const char *prefix, int *element_count, int max_elements); 
 int Add_Number_To_String_Float(char *str, float number_f, const char *prefix, int *element_count, int max_elements); 
-void process_keyword(char *rx_buf, const char *keyword, int *value);
+bool process_keyword(char *rx_buf, const char *keyword, int *value);
 
 //=== Отправка пакетов и Асинхронное чтение ===================================================================================
 
@@ -268,10 +270,27 @@ void Pars_Socket_Data(char *rx_buf) {
     // Обработка ключевого слова "V_FILTER_ORDER"
     process_keyword(rx_buf, "V_FILTER_ORDER", &var.filter.order_V);
 
+    // Обработка ключевого слова "I_LIM_SET"
+    if (process_keyword(rx_buf, "I_LIM_SET", &var.ina226.calibr.I_lim_mA)) {
+        var.ina226.is_init = 0;
+        ESP_LOGI(TAG, "var.ina226.is_init = %d", (int)var.ina226.is_init);
+        ESP_LOGI(TAG, "var.ina226.task_handle = %d", (int)var.ina226.task_handle);
+        if (var.ina226.task_handle == NULL) {
+            // Создаем задачу
+            xTaskCreate(ina226_init_task, "ina226_init_task", 2048, NULL, 5, &var.ina226.task_handle);
+
+            // ina226_Calc_Coeff(); 
+            // ina226_Calibr_Logs();
+            // var.ina226.is_init = ina226_init(I2C_CONTROLLER_0);
+            // ESP_LOGI(TAG, "var.ina226.is_init = %" PRId16, (int)var.ina226.is_init);
+        }
+    }   
+
 }
 //==============================================================================================================
 
-void process_keyword(char *rx_buf, const char *keyword, int *value) {
+bool process_keyword(char *rx_buf, const char *keyword, int *value) {
+    bool result = 0;
     char *keyword_ptr = strstr(rx_buf, keyword);
     if (keyword_ptr != NULL) {
         keyword_ptr += strlen(keyword); // Переходим за ключевое слово
@@ -285,8 +304,10 @@ void process_keyword(char *rx_buf, const char *keyword, int *value) {
             // Извлекаем целое значение после ключевого слова
             *value = atoi(keyword_ptr);
             ESP_LOGI(TAG, "________________________%s value: %d", keyword, *value);
+            result = 1;
         }
     }
+    return result;
 }
 //==============================================================================================================
 

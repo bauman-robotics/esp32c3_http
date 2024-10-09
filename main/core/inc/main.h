@@ -19,4 +19,4 @@
 #define AMPLITUDE          1000 // Amplitude from 0 to 1000
 
 
-#define INA226_TRY_INIT_PERIOD_MS (10)
+#define INA226_TRY_INIT_PERIOD_MS (100)

@@ -7,6 +7,8 @@
 #include "defines.h"
 
 
+
+
 //======================================================================
 
 // Определяем структуру заголовка
@@ -42,14 +44,29 @@ typedef struct {
     bool type_hex;
 } packet_type;
 //======================================================================
+typedef struct {   
 
+   // input 
+    int   I_lim_mA;
+    float R_shunt_Om;
+    //=== output 
+    //float LSB_A;
+    float LSB_mA;
+    uint16_t   CALIBR_VAL;
+    //float Current_coeff;
+} calibr_t;
+//======================================================================
 typedef struct {   
     int16_t voltage_i;
+    int16_t current_i;    
     float   voltage_f;    
     bool is_init;
     bool voltage_is_valid;
     int64_t get_voltage_period_mks; 
     bool get_current;
+    calibr_t calibr;
+    TaskHandle_t task_handle;
+
 } ina226_t;
 
 //======================================================================
@@ -64,6 +81,7 @@ typedef struct {
     int order_I;
     bool enabled;
 } filter_t;
+
 //======================================================================
 
 typedef struct {   
