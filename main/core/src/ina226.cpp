@@ -81,12 +81,12 @@ float ina226_voltage(uint8_t i2c_master_port){
 	
 	float fBusVoltage = 0;	
 	//ESP_LOGI(TAG, "ina226_voltage__start");
-	var.ina226.voltage_is_valid = 1;
+	var.ina226.value_is_valid = 1;
 	uint16_t iBusVoltage_filtred; 
 	uint16_t iBusVoltage = i2c_read_short(i2c_master_port, INA226_SLAVE_ADDRESS, INA226_BUS_VOLT_REG);
 
 	if (iBusVoltage == 65535) {
-		var.ina226.voltage_is_valid = 0;
+		var.ina226.value_is_valid = 0;
 	}
 
 	if (var.filter.enabled) {
@@ -115,11 +115,11 @@ float ina226_current(uint8_t i2c_master_port)
 	unsigned int iCurrent;
 	uint16_t iCurrent_filtred; 
 	float fCurrent = 0;
-	var.ina226.voltage_is_valid = 1;
+	var.ina226.value_is_valid = 1;
 	iCurrent = i2c_read_short(i2c_master_port, INA226_SLAVE_ADDRESS, INA226_CURRENT_REG);
 
 	if (iCurrent == 65535) {
-		var.ina226.voltage_is_valid = 0;
+		var.ina226.value_is_valid = 0;
 	}	
 
 	if (var.filter.enabled) {
@@ -129,48 +129,65 @@ float ina226_current(uint8_t i2c_master_port)
 		iCurrent_filtred = iCurrent;
 	}
 
-	var.ina226.current_i = iCurrent_filtred;
+	//var.ina226.current_i = iCurrent_filtred;  // only for logs 
 
-	// Internally Calculated as Current = ((ShuntVoltage * CalibrationRegister) / 2048)
 	fCurrent = (float)iCurrent_filtred * var.ina226.calibr.LSB_mA; // mA
 	
 	#ifdef DEBUG_LOG
 		printf("Current = %.3fA\r\n", fCurrent);
 	#endif	
 
-	var.ina226.voltage_f = fCurrent;  // mA
+	var.ina226.current_f = fCurrent;  // for Debug 
 
 	return (fCurrent);
 }
 //==============================================================================
 
-float ina226_power(i2c_port_t i2c_master_port)
+float ina226_power(uint8_t i2c_master_port)
 {
 	unsigned int iPower = 0;
 	float fPower = 0;
+	uint16_t iPower_filtred = 0; 
 
 	iPower = i2c_read_short(i2c_master_port, INA226_SLAVE_ADDRESS, INA226_POWER_REG);
-	// The Power Register LSB is internally programmed to equal 25 times the programmed value of the Current_LSB
-	fPower = iPower * 0.0125;
 
+
+	if (var.filter.enabled) {
+
+		iPower_filtred = Filter_SMA_P(iPower);
+	} else {
+		iPower_filtred = iPower;
+	}
+
+
+	// The Power Register LSB is internally programmed to equal 25 times the programmed value of the Current_LSB
+	float lsb_Pow_mW = var.ina226.calibr.LSB_mA * 25; 
+	fPower = (float)iPower_filtred * lsb_Pow_mW; //* 0.0125;* var.ina226.calibr.LSB_mA
+	var.ina226.power_i = iPower_filtred;  // for debug 
 	//printf("Power = %.2fW\r\n", fPower);
 	return (fPower);
 }
 //==============================================================================
 
+float Get_Power() {
+	float result;
+	result = ina226_power(I2C_CONTROLLER_0);
 
-void Get_Voltage() {
-
-	ina226_voltage(I2C_CONTROLLER_0);
-
+	return result;
 }
 //==============================================================================
 
+float Get_Voltage() {
+	float result;
+	result = ina226_voltage(I2C_CONTROLLER_0);
+	return result;	
+}
+//==============================================================================
 
-void Get_Current() {
-
-	ina226_current(I2C_CONTROLLER_0);
-
+float Get_Current() {
+	float result;
+	result = ina226_current(I2C_CONTROLLER_0);
+	return result;		
 }
 //==============================================================================
 
@@ -184,13 +201,8 @@ void ina226_Set_Coeff_Default() {
 
 void ina226_Calc_Coeff() {
 
-	//var.ina226.calibr.LSB_A         = (float)var.ina226.calibr.I_lim_mA / (32768 * 1000); // 2**15 = 32768
-
 	var.ina226.calibr.LSB_mA         = (float)var.ina226.calibr.I_lim_mA / 32768; // 2**15 = 32768
-	//var.ina226.calibr.CALIBR_VAL    = (int)( 0.00512 / (var.ina226.calibr.LSB_A  * var.ina226.calibr.R_shunt_Om));
 	var.ina226.calibr.CALIBR_VAL    = (uint16_t)( 5.12 / (var.ina226.calibr.LSB_mA  * var.ina226.calibr.R_shunt_Om));
-	//var.ina226.calibr.Current_coeff = (float)var.ina226.calibr.CALIBR_VAL / 2048; 
-	//var.ina226.calibr.Current_coeff = 1  / 2048; 	
 }
 //==============================================================================
 
@@ -200,7 +212,6 @@ void ina226_Calibr_Logs() {
 	ESP_LOGI(TAG, "R_shunt_Om    = %0.1f", var.ina226.calibr.R_shunt_Om);
 	ESP_LOGI(TAG, "LSB_mA        = %0.5f", var.ina226.calibr.LSB_mA);
 	ESP_LOGI(TAG, "CALIBR_VAL    = %d",    var.ina226.calibr.CALIBR_VAL);
-	//ESP_LOGI(TAG, "Current_coeff = %0.6f", var.ina226.calibr.Current_coeff);
 	ESP_LOGI(TAG, "Voltage_LSB   = %s",  " is a fixed 1.25 mV/bit");
 }
 

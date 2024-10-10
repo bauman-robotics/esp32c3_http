@@ -96,13 +96,15 @@ void log_task(void *pvParameters) {
 
     while (1) {
         
-	    ESP_LOGI(TAG, "var.ina226.calibr.CALIBR_VAL= %d", (uint16_t)var.ina226.calibr.CALIBR_VAL);
-        //ESP_LOGI(TAG, "var.ina226.Current_coeff = %.4f", var.ina226.calibr.Current_coeff);    
-        ESP_LOGI(TAG, "var.ina226.LSB_mkA = %.001f", var.ina226.calibr.LSB_mA * 1000);   
-        ESP_LOGI(TAG, "var.ina226.current_i = %d", var.ina226.current_i);  
-        ESP_LOGI(TAG, "current_mA = %.4f", var.ina226.voltage_f);
+	    // ESP_LOGI(TAG, "var.ina226.calibr.CALIBR_VAL= %d", (uint16_t)var.ina226.calibr.CALIBR_VAL);
+        // //ESP_LOGI(TAG, "var.ina226.Current_coeff = %.4f", var.ina226.calibr.Current_coeff);    
+        // ESP_LOGI(TAG, "var.ina226.LSB_mkA = %.001f", var.ina226.calibr.LSB_mA * 1000);   
+        // ESP_LOGI(TAG, "var.ina226.current_i = %d", var.ina226.current_i);  
+        // ESP_LOGI(TAG, "current_mA = %.4f", var.ina226.voltage_f);
+        ESP_LOGI(TAG, "power_i = %d", var.ina226.power_i);          
+
             
-        ina226_Calibr_Logs();
+        //ina226_Calibr_Logs();
 
         //ESP_LOGI(TAG, "CURRENT_COEF * 1000= %"                PRId16, (int)(INA226_CURRENT_COEFF * 1000));
         //ESP_LOGI(TAG, "var.count_vals_in_packet= %"         PRId16, var.count_vals_in_packet);
@@ -191,7 +193,8 @@ extern "C" void app_main(void) {
 
     var.filter.order_V = FILTER_ORDER_V;
     var.filter.order_I = FILTER_ORDER_I;
-    #ifdef FILTER_I_V_ENABLE
+    var.filter.order_P = FILTER_ORDER_P;    
+    #ifdef FILTER_I_V_P_ENABLE
         var.filter.enabled = 1;
     #else 
         var.filter.enabled = 0;
@@ -201,7 +204,6 @@ extern "C" void app_main(void) {
     xQueueSignalData    = xQueueCreate(10, sizeof(SignalData));
     xQueueSignalReady   = xQueueCreate(10, sizeof(uint8_t));
   
-
     if (xQueueSignalData  == NULL || xQueueSignalReady == NULL ) {
         ESP_LOGE(TAG, "Failed to create queues");
         return;

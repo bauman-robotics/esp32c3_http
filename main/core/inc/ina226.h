@@ -39,8 +39,9 @@ float ina226_voltage(uint8_t i2c_master_port);
 float ina226_current(uint8_t i2c_master_port);
 float ina226_power(uint8_t i2c_master_port);
 
-void Get_Voltage(); 
-void Get_Current();
+float Get_Voltage(); 
+float Get_Current();
+float Get_Power();
 
 void ina226_Set_Coeff_Default();
 void ina226_Calc_Coeff(); 

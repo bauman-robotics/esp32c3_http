@@ -14,6 +14,6 @@
 
 uint16_t Filter_SMA_V(uint16_t for_Filtered);	
 uint16_t Filter_SMA_I(uint16_t for_Filtered);	
-
+uint16_t Filter_SMA_P(uint16_t for_Filtered);
 
 

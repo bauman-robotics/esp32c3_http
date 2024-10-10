@@ -195,7 +195,7 @@ void Pars_Socket_Data(char *rx_buf) {
     }    
 
     // Определение вариантов соответствия
-    const char *options[] = {"Red", "Green", "Blue", "Current", "HEX", "ASCII"};
+    const char *options[] = {"Red", "Green", "Blue", "Current", "Power", "HEX", "ASCII"};
     int count = sizeof(options) / sizeof(options[0]);
     // Анализ строки и установка флагов
 
@@ -225,9 +225,9 @@ void Pars_Socket_Data(char *rx_buf) {
                     var.leds.red   = 0;
                     var.leds.green = 0;
                     var.leds.blue  = 1;   
-
+                    var.ina226.get_voltage = 1;
                     var.ina226.get_current = 0;
-    
+                    var.ina226.get_power   = 0;   
                     break;
                 //===================== 
                 case 3:
@@ -237,18 +237,33 @@ void Pars_Socket_Data(char *rx_buf) {
                     var.leds.green = 0;
                     var.leds.blue  = 1;   
 
+                    var.ina226.get_voltage = 0;
                     var.ina226.get_current = 1;
+                    var.ina226.get_power   = 0;   
     
                     break;
-                //=====================                 
+                //===================== 
                 case 4:
+                    ESP_LOGI(TAG, "________________________Power");
+
+                    var.leds.red   = 0;
+                    var.leds.green = 0;
+                    var.leds.blue  = 1;   
+
+                    var.ina226.get_voltage = 0;
+                    var.ina226.get_current = 0;
+                    var.ina226.get_power   = 1;   
+    
+                    break;                    
+                //=====================                 
+                case 5:
                     ESP_LOGI(TAG, "________________________HEX");
 
                     var.packet.type_hex = 1;
                  
                     break;
                 //===================== 
-                case 5:
+                case 6:
                     ESP_LOGI(TAG, "________________________ASCII");
 
                     var.packet.type_hex = 0;
@@ -265,7 +280,9 @@ void Pars_Socket_Data(char *rx_buf) {
     process_keyword(rx_buf, "NUM", &var.count_vals_in_packet);
 
     // Обработка ключевого слова "I_FILTER_ORDER"
-    process_keyword(rx_buf, "I_FILTER_ORDER", &var.filter.order_I);
+    if (process_keyword(rx_buf, "I_FILTER_ORDER", &var.filter.order_I)) {
+        var.filter.order_P = var.filter.order_I;
+    }
 
     // Обработка ключевого слова "V_FILTER_ORDER"
     process_keyword(rx_buf, "V_FILTER_ORDER", &var.filter.order_V);

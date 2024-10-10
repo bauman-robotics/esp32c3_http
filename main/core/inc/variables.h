@@ -50,20 +50,23 @@ typedef struct {
     int   I_lim_mA;
     float R_shunt_Om;
     //=== output 
-    //float LSB_A;
-    float LSB_mA;
-    uint16_t   CALIBR_VAL;
-    //float Current_coeff;
+    float     LSB_mA;
+    uint16_t  CALIBR_VAL;
 } calibr_t;
 //======================================================================
 typedef struct {   
     int16_t voltage_i;
-    int16_t current_i;    
-    float   voltage_f;    
+    int16_t current_i;  
+    int16_t power_i;    // for debug   
+    float   voltage_f;   
+    float   current_f;  // for debug
+    float   power_f;    // for debug     
     bool is_init;
-    bool voltage_is_valid;
+    bool value_is_valid;
     int64_t get_voltage_period_mks; 
     bool get_current;
+    bool get_voltage;    
+    bool get_power;        
     calibr_t calibr;
     TaskHandle_t task_handle;
 
@@ -79,6 +82,7 @@ typedef struct {
 typedef struct {
     int order_V;
     int order_I;
+    int order_P;    
     bool enabled;
 } filter_t;
 

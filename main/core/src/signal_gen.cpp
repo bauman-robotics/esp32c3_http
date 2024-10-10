@@ -171,7 +171,7 @@ void Generate_Signal(SignalData *signal_data) {
                 signal_data->data_f[i] = calc_sawtooth_socket_data_float();          
             #endif            
         }
-    } else if (var.leds.blue) {
+    } else if (var.leds.blue) {  // Voltage, Current, Power 
 
         if (var.ina226.is_init) {
 
@@ -204,18 +204,21 @@ void Generate_Signal(SignalData *signal_data) {
                 }
                 var.timer.ready = 0;
                 //==========================================================
-                if (!var.ina226.get_current) {
-                    Get_Voltage(); 
-                } else {
-                    Get_Current();
+                float value = 0;
+                if (var.ina226.get_voltage) {
+                    value = Get_Voltage(); 
+                } else if  (var.ina226.get_current) {
+                    value = Get_Current();
+                } else if  (var.ina226.get_power) {
+                    value = Get_Power();
                 }
                 
-                if (var.ina226.voltage_is_valid) {
+                if (var.ina226.value_is_valid) {
 
                     #ifndef DATA_TYPE_FLOAT     
                         signal_data->data[index] = var.ina226.voltage_i;
                     #else
-                        signal_data->data_f[index] = var.ina226.voltage_f;          
+                        signal_data->data_f[index] = value;          
                     #endif       
                     //
                     index++; // Увеличиваем индекс только при валидном напряжении                        

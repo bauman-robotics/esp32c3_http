@@ -60,24 +60,14 @@
 const int   MAX_EXPECTED_CURRENT_mA   = 1000; // mA
 const float INA226_R_SHUNT_Om         = 0.1;
 //=== Output ===
-//onst float INA226_LSB_A              = (float)MAX_EXPECTED_CURRENT_mA  / (32768 * 1000); // 2**15 = 32768
 const float INA226_LSB_mA             = (float)MAX_EXPECTED_CURRENT_mA  / 32768 ; // 2**15 = 32768
 const float INA226_LSB_mkA            = INA226_LSB_mA * 1000;  // not used
-const int   INA226_CALIBRATION_VAL    = (int)( 5.12 / (INA226_LSB_mA  * INA226_R_SHUNT_Om));        //  1024;  // not used
-//const float INA226_CURRENT_COEFF      = (INA226_R_SHUNT_Om * (float)INA226_CALIBRATION_VAL) / 2048;   //  0.05   // not used
+const int   INA226_CALIBRATION_VAL    = (int)( 5.12 / (INA226_LSB_mA  * INA226_R_SHUNT_Om));  // not used
 //==============
 
 //#define GET_CURRENT_DEFAULT
 
-#define FILTER_I_V_ENABLE 
+#define FILTER_I_V_P_ENABLE 
 #define FILTER_ORDER_I (100)
 #define FILTER_ORDER_V (100)
-/*
-CALIBRATION	1024
-R_Shunt, Om	0,1
-	
-Curr_LSB, A 	0,00005
-Curr_LSB, mA 	0,05
-Curr_LSB, mkA 	50
-MAX_EXPECTED_CURR, A	1,6384
-*/
+#define FILTER_ORDER_P (100)
