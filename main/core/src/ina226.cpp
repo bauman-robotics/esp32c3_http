@@ -129,7 +129,7 @@ float ina226_current(uint8_t i2c_master_port)
 		iCurrent_filtred = iCurrent;
 	}
 
-	//var.ina226.current_i = iCurrent_filtred;  // only for logs 
+	var.ina226.current_i = iCurrent_filtred;  // only for logs 
 
 	fCurrent = (float)iCurrent_filtred * var.ina226.calibr.LSB_mA; // mA
 	
@@ -209,10 +209,10 @@ void ina226_Calc_Coeff() {
 void ina226_Calibr_Logs() {
 
 	ESP_LOGI(TAG, "I_lim_mA      = %d",    var.ina226.calibr.I_lim_mA);
-	ESP_LOGI(TAG, "R_shunt_Om    = %0.1f", var.ina226.calibr.R_shunt_Om);
+	//ESP_LOGI(TAG, "R_shunt_Om    = %0.1f", var.ina226.calibr.R_shunt_Om);
 	ESP_LOGI(TAG, "LSB_mA        = %0.5f", var.ina226.calibr.LSB_mA);
 	ESP_LOGI(TAG, "CALIBR_VAL    = %d",    var.ina226.calibr.CALIBR_VAL);
-	ESP_LOGI(TAG, "Voltage_LSB   = %s",  " is a fixed 1.25 mV/bit");
+	//ESP_LOGI(TAG, "Voltage_LSB   = %s",  " is a fixed 1.25 mV/bit");
 }
 
 

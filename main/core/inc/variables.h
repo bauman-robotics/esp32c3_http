@@ -47,7 +47,7 @@ typedef struct {
 typedef struct {   
 
    // input 
-    int   I_lim_mA;
+    uint16_t  I_lim_mA;
     float R_shunt_Om;
     //=== output 
     float     LSB_mA;

@@ -57,17 +57,17 @@
 //#define INA226_CFG_REG_VAL (0x4f27) // Average over 1024 Samples
 
 //=== input ====
-const int   MAX_EXPECTED_CURRENT_mA   = 1000; // mA
-const float INA226_R_SHUNT_Om         = 0.1;
+const uint16_t   MAX_EXPECTED_CURRENT_mA   = 1000; // mA
+const float INA226_R_SHUNT_Om              = 0.1;
 //=== Output ===
-const float INA226_LSB_mA             = (float)MAX_EXPECTED_CURRENT_mA  / 32768 ; // 2**15 = 32768
-const float INA226_LSB_mkA            = INA226_LSB_mA * 1000;  // not used
-const int   INA226_CALIBRATION_VAL    = (int)( 5.12 / (INA226_LSB_mA  * INA226_R_SHUNT_Om));  // not used
+const float      INA226_LSB_mA             = (float)MAX_EXPECTED_CURRENT_mA  / 32768 ; // 2**15 = 32768
+const float      INA226_LSB_mkA            = INA226_LSB_mA * 1000;  // not used
+const uint16_t   INA226_CALIBRATION_VAL    = (uint16_t)( 5.12 / (INA226_LSB_mA  * INA226_R_SHUNT_Om));  // not used
 //==============
 
 //#define GET_CURRENT_DEFAULT
 
-#define FILTER_I_V_P_ENABLE 
-#define FILTER_ORDER_I (100)
+//#define FILTER_V_I_P_ENABLE 
 #define FILTER_ORDER_V (100)
+#define FILTER_ORDER_I (100)
 #define FILTER_ORDER_P (100)

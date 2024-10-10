@@ -288,7 +288,7 @@ void Pars_Socket_Data(char *rx_buf) {
     process_keyword(rx_buf, "V_FILTER_ORDER", &var.filter.order_V);
 
     // Обработка ключевого слова "I_LIM_SET"
-    if (process_keyword(rx_buf, "I_LIM_SET", &var.ina226.calibr.I_lim_mA)) {
+    if (process_keyword(rx_buf, "I_LIM_SET", (int*)&var.ina226.calibr.I_lim_mA)) {
         var.ina226.is_init = 0;
         ESP_LOGI(TAG, "var.ina226.is_init = %d", (int)var.ina226.is_init);
         ESP_LOGI(TAG, "var.ina226.task_handle = %d", (int)var.ina226.task_handle);
