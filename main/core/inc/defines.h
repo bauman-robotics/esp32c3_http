@@ -58,7 +58,7 @@
 
 //=== input ====
 const uint16_t   MAX_EXPECTED_CURRENT_mA   = 1000; // mA
-const float INA226_R_SHUNT_Om              = 0.1;
+const float INA226_R_SHUNT_Om              = 0.05;
 //=== Output ===
 const float      INA226_LSB_mA             = (float)MAX_EXPECTED_CURRENT_mA  / 32768 ; // 2**15 = 32768
 const float      INA226_LSB_mkA            = INA226_LSB_mA * 1000;  // not used
