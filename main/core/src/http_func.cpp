@@ -49,6 +49,8 @@ std::string apiKeyValue   = API_KEY;
 // unsigned long wakeUpTime;
 // time_t now; 
 // struct tm timeinfo;
+
+esp_err_t _http_event_handler(esp_http_client_event_t *evt);
 //=====================================================================================
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt) {

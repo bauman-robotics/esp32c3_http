@@ -1,0 +1,37 @@
+{
+    "idf.adapterTargetName": "esp32c6",
+    "idf.port": "/dev/ttyACM0",
+    "idf.flashType": "UART",
+    "files.associations": {
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "span": "cpp",
+        "vector": "cpp",
+        "cstdlib": "cpp",
+        "__locale": "cpp",
+        "cmath": "cpp",
+        "bitset": "cpp",
+        "initializer_list": "cpp",
+        "format": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "deque": "cpp",
+        "queue": "cpp",
+        "random": "cpp",
+        "unordered_map": "cpp",
+        "utility": "cpp",
+        "cerrno": "cpp",
+        "led_strip.h": "c",
+        "cstdint": "cpp",
+        "algorithm": "cpp",
+        "__bit_reference": "cpp",
+        "chrono": "cpp",
+        "variant": "cpp",
+        "compare": "cpp",
+        "iterator": "cpp"
+    },
+    "idf.openOcdConfigs": [
+        "board/esp32c6-builtin.cfg"
+    ]
+}
