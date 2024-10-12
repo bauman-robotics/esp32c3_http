@@ -10,7 +10,8 @@ idf_component_register(
        "core/src/i2c.cpp"  
        "core/src/ina226.cpp"    
        "core/src/timer_e.cpp"   
-       "core/src/filter_sma.cpp"                                      
+       "core/src/filter_sma.cpp"    
+       "core/src/uart.cpp"     
     INCLUDE_DIRS 
         "core/inc"
 )

@@ -7,6 +7,8 @@
 //#define SEND_UART_SIN_ENABLE
 //#define POST_REQUEST_ENABLE
 #define SOCKET_CLIENT_ENABLE
+#define USB_SERIAL_JTAG_TASK_ENABLE
+
 
 //=== T-me Params =================
 #define UART_SIN_SEND_PERIOD_MS  (10)
@@ -71,3 +73,4 @@ const uint16_t   INA226_CALIBRATION_VAL    = (uint16_t)( 5.12 / (INA226_LSB_mA  
 #define FILTER_ORDER_V (100)
 #define FILTER_ORDER_I (100)
 #define FILTER_ORDER_P (100)
+

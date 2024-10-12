@@ -11,5 +11,7 @@ list(APPEND EXTRA_COMPONENT_DIRS components/espressif__led_strip)
 list(APPEND EXTRA_COMPONENT_DIRS components/esp-tls)
 list(APPEND EXTRA_COMPONENT_DIRS components/esp_driver_i2c)
 list(APPEND EXTRA_COMPONENT_DIRS components/i2c)
+#list(APPEND EXTRA_COMPONENT_DIRS components/esp_driver_usb_serial_jtag)
+
 # set(EXTRA_COMPONENT_DIRS components)
 

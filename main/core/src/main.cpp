@@ -17,6 +17,9 @@
 #include "driver/i2c.h"
 #include "timer_e.h"
 
+#include "uart.h"
+
+
 //========================================
 const char *TAG = "esp32";
 
@@ -213,6 +216,16 @@ extern "C" void app_main(void) {
         xTaskCreate(signal_gen_task, "signal_gen_task", 2048, NULL, 5, NULL);   
     #endif 
 
+    //=====================================================================================
+    
+    #ifdef USB_SERIAL_JTAG_TASK_ENABLE        
+
+        xTaskCreate(echo_task, "USB SERIAL JTAG_echo_task", 4096, NULL, 10, NULL);
+
+    #endif 
+
+    //=====================================================================================
+    
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000)); // Добавьте задержку, чтобы избежать тайм-аута задачи
     }    
