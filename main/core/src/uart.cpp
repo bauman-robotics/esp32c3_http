@@ -15,12 +15,11 @@
 #include "make_data_str.h" 
 
 #define BUF_SIZE (1024)
-// #define ECHO_TASK_STACK_SIZE (4096)
 
 static const char *TAG = "uart";
 
 
-void echo_task(void *arg)
+void usb_serial_jtag_task(void *arg)
 {
 
     usb_serial_jtag_driver_config_t usb_serial_jtag_config;

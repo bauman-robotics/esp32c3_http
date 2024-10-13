@@ -207,7 +207,7 @@ extern "C" void app_main(void) {
     
     #ifdef USB_SERIAL_JTAG_TASK_ENABLE        
         var.leds.flags = LEDS_CONNECT_TO_SERVER_STATE; 
-        xTaskCreate(echo_task, "USB SERIAL JTAG_echo_task", 4096 + 2048, NULL, 5, NULL);
+        xTaskCreate(usb_serial_jtag_task, "USB SERIAL JTAG_echo_task", 4096 + 2048, NULL, 5, NULL);
      
     #endif 
     //=====================================================================================

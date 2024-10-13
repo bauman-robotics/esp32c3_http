@@ -37,10 +37,10 @@
 
 #define BINARY_PACKET_INT_KEY (2255)
 //#define BINARY_PACKET_FLOAT_KEY (2233)
-#define BINARY_PACKET_FLOAT_KEY (5678)
+#define BINARY_PACKET_FLOAT_KEY (17531)
 
 
-//#define BINARY_PACKET 
+#define BINARY_PACKET 
 #define DATA_TYPE_FLOAT 
 
 //#define DEBUG_LOG
@@ -69,7 +69,7 @@ const uint16_t   INA226_CALIBRATION_VAL    = (uint16_t)( 5.12 / (INA226_LSB_mA  
 
 //#define GET_CURRENT_DEFAULT
 
-//#define FILTER_V_I_P_ENABLE 
+#define FILTER_V_I_P_ENABLE 
 #define FILTER_ORDER_V (100)
 #define FILTER_ORDER_I (100)
 #define FILTER_ORDER_P (100)

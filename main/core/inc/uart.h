@@ -2,4 +2,4 @@
 
 // #include "uart.h"
 
-void echo_task(void *arg);
+void usb_serial_jtag_task(void *arg);

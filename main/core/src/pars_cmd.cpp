@@ -36,7 +36,7 @@ void Pars_Cmd(char *rx_buf) {
     for (int i = 0; i < count; i++) {
         //if (strstr(rx_buf, options[i]) != NULL) {
 
-        ESP_LOGI(TAG, "___Rx=%s    Var=%s", rx_buf, options[i]);
+        //ESP_LOGI(TAG, "___Rx=%s    Var=%s", rx_buf, options[i]);
 
         if (strcasestr(rx_buf, options[i]) != NULL) {          
             switch (i) {
@@ -107,10 +107,10 @@ void Pars_Cmd(char *rx_buf) {
 
                     break;  
                    // for de        
-                default:
-                    ESP_LOGI(TAG, "__------------ Not Responced:%s", rx_buf);
+                // default:
+                //     ESP_LOGI(TAG, "__------------ Not Responced:%s", rx_buf);
 
-                    break;                                                      
+                //     break;                                                      
             }
         }
     }
