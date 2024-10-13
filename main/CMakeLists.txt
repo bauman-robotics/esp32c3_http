@@ -12,6 +12,8 @@ idf_component_register(
        "core/src/timer_e.cpp"   
        "core/src/filter_sma.cpp"    
        "core/src/uart.cpp"     
+       "core/src/pars_cmd.cpp" 
+       "core/src/make_data_str.cpp"               
     INCLUDE_DIRS 
         "core/inc"
 )

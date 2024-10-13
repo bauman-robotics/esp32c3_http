@@ -64,15 +64,6 @@ void send_post_request_task(void *pvParameters) {
 }
 //=====================================================================================
 
-void uart_sin_send_task(void *pvParameters) {
-    while (1) {
-        uart_sin_data = calc_sine_uart_data();
-        ESP_LOGI(TAG, "data %" PRId16, uart_sin_data);
-        vTaskDelay(pdMS_TO_TICKS(UART_SIN_SEND_PERIOD_MS)); // Задержка на 1 секунду
-    }
-}
-//=====================================================================================
-
 void ina226_init_task(void *pvParameters) {
     while (1) {
         // ESP_LOGI(TAG, "var.ina226.is_init = %" PRId16, (int)var.ina226.is_init);
@@ -181,10 +172,6 @@ extern "C" void app_main(void) {
     #endif 
     //=========================================
 
-    #ifdef SEND_UART_SIN_ENABLE  
-        xTaskCreate(uart_sin_send_task, "Uart_task", 2048, NULL, 5, NULL);   
-    #endif 
-
     #ifdef INA226_ENABLE    
         xTaskCreate(ina226_init_task, "ina226_init_task", 2048, NULL, 5,  &var.ina226.task_handle);
     #endif 
@@ -219,13 +206,13 @@ extern "C" void app_main(void) {
     //=====================================================================================
     
     #ifdef USB_SERIAL_JTAG_TASK_ENABLE        
-
-        xTaskCreate(echo_task, "USB SERIAL JTAG_echo_task", 4096, NULL, 10, NULL);
-
+        var.leds.flags = LEDS_CONNECT_TO_SERVER_STATE; 
+        xTaskCreate(echo_task, "USB SERIAL JTAG_echo_task", 4096 + 2048, NULL, 5, NULL);
+     
     #endif 
-
     //=====================================================================================
-    
+ 
+
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000)); // Добавьте задержку, чтобы избежать тайм-аута задачи
     }    

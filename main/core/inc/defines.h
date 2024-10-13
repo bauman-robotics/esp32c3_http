@@ -4,16 +4,14 @@
 //=== Mode ========================
 
 #define LED_BLINK_ENABLE
-//#define SEND_UART_SIN_ENABLE
 //#define POST_REQUEST_ENABLE
-#define SOCKET_CLIENT_ENABLE
+//#define SOCKET_CLIENT_ENABLE
 #define USB_SERIAL_JTAG_TASK_ENABLE
-
 
 //=== T-me Params =================
 #define UART_SIN_SEND_PERIOD_MS  (10)
 #define POST_REQUEST_PERIOD_MS (3000)
-#define SOCKET_SEND_PERIOD_MS    (10)
+#define SOCKET_SEND_PERIOD_MS   (100)  // socket and echo 
 //=========================================
 
 //=== Выберите целевой сервер ===
@@ -40,7 +38,7 @@
 #define BINARY_PACKET_INT_KEY (2255)
 #define BINARY_PACKET_FLOAT_KEY (2233)
 
-#define BINARY_PACKET 
+//#define BINARY_PACKET 
 #define DATA_TYPE_FLOAT 
 
 //#define DEBUG_LOG

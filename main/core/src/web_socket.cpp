@@ -26,15 +26,17 @@
 #include "variables.h"
 #include "signal_gen.h"
 
+#include "pars_cmd.h"
+#include "make_data_str.h" 
+
 extern void ina226_init_task(void *pvParameters);
 
 static const char *TAG = "ex";
 
 void socket_task(void *pvParameters);
-void Pars_Socket_Data(char * rx_buf);
+
 int Add_Number_To_String(char *str, int number, const char *prefix, int *element_count, int max_elements); 
 int Add_Number_To_String_Float(char *str, float number_f, const char *prefix, int *element_count, int max_elements); 
-bool process_keyword(char *rx_buf, const char *keyword, int *value);
 
 //=== Отправка пакетов и Асинхронное чтение ===================================================================================
 
@@ -94,7 +96,7 @@ void socket_task(void *pvParameters) {
             } else if (num > 0) {
                 // Обработка входящих данных
                 rx_buffer[num] = '\0';  // Завершающий символ строки
-                Pars_Socket_Data(rx_buffer);
+                Pars_Cmd(rx_buffer);
                 //ESP_LOGI(TAG, "_____________________________________Received %d bytes from server: %s", num, rx_buffer);
             }
             //======================================================================
@@ -185,194 +187,4 @@ void socket_task(void *pvParameters) {
 }
 //==============================================================================================================
 
-//Функция анализа строки и установки флагов
-void Pars_Socket_Data(char *rx_buf) {
-
-    // Проверка на нулевой указатель
-    if (rx_buf == NULL) {
-        ESP_LOGI(TAG, "rx_buf is NULL");
-        return;
-    }    
-
-    // Определение вариантов соответствия
-    const char *options[] = {"Red", "Green", "Blue", "Current", "Power", "HEX", "ASCII"};
-    int count = sizeof(options) / sizeof(options[0]);
-    // Анализ строки и установка флагов
-
-    for (int i = 0; i < count; i++) {
-        //if (strstr(rx_buf, options[i]) != NULL) {
-        if (strcasestr(rx_buf, options[i]) != NULL) {            
-            switch (i) {
-                case 0:
-                    ESP_LOGI(TAG, "________________________Red");
-
-                    var.leds.red   = 1;
-                    var.leds.green = 0;
-                    var.leds.blue  = 0;
-                    break;
-                //=====================    
-                case 1:
-                    ESP_LOGI(TAG, "________________________Green");
-
-                    var.leds.red   = 0;
-                    var.leds.green = 1;
-                    var.leds.blue  = 0;
-                    break;
-                //===================== 
-                case 2:
-                    ESP_LOGI(TAG, "________________________Blue");
-
-                    var.leds.red   = 0;
-                    var.leds.green = 0;
-                    var.leds.blue  = 1;   
-                    var.ina226.get_voltage = 1;
-                    var.ina226.get_current = 0;
-                    var.ina226.get_power   = 0;   
-                    break;
-                //===================== 
-                case 3:
-                    ESP_LOGI(TAG, "________________________Current");
-
-                    var.leds.red   = 0;
-                    var.leds.green = 0;
-                    var.leds.blue  = 1;   
-
-                    var.ina226.get_voltage = 0;
-                    var.ina226.get_current = 1;
-                    var.ina226.get_power   = 0;   
-    
-                    break;
-                //===================== 
-                case 4:
-                    ESP_LOGI(TAG, "________________________Power");
-
-                    var.leds.red   = 0;
-                    var.leds.green = 0;
-                    var.leds.blue  = 1;   
-
-                    var.ina226.get_voltage = 0;
-                    var.ina226.get_current = 0;
-                    var.ina226.get_power   = 1;   
-    
-                    break;                    
-                //=====================                 
-                case 5:
-                    ESP_LOGI(TAG, "________________________HEX");
-
-                    var.packet.type_hex = 1;
-                 
-                    break;
-                //===================== 
-                case 6:
-                    ESP_LOGI(TAG, "________________________ASCII");
-
-                    var.packet.type_hex = 0;
-
-                    break;                                        
-            }
-        }
-    }
-
-    // Обработка ключевого слова "PER"
-    process_keyword(rx_buf, "PER", &var.signal_period);
-
-    // Обработка ключевого слова "NUM"
-    process_keyword(rx_buf, "NUM", &var.count_vals_in_packet);
-
-    // Обработка ключевого слова "I_FILTER_ORDER"
-    if (process_keyword(rx_buf, "I_FILTER_ORDER", &var.filter.order_I)) {
-        var.filter.order_P = var.filter.order_I;
-    }
-
-    // Обработка ключевого слова "V_FILTER_ORDER"
-    process_keyword(rx_buf, "V_FILTER_ORDER", &var.filter.order_V);
-
-    // Обработка ключевого слова "I_LIM_SET"
-    if (process_keyword(rx_buf, "I_LIM_SET", (int*)&var.ina226.calibr.I_lim_mA)) {
-        var.ina226.is_init = 0;
-        ESP_LOGI(TAG, "var.ina226.is_init = %d", (int)var.ina226.is_init);
-        ESP_LOGI(TAG, "var.ina226.task_handle = %d", (int)var.ina226.task_handle);
-        if (var.ina226.task_handle == NULL) {
-            // Создаем задачу
-            xTaskCreate(ina226_init_task, "ina226_init_task", 2048, NULL, 5, &var.ina226.task_handle);
-
-            // ina226_Calc_Coeff(); 
-            // ina226_Calibr_Logs();
-            // var.ina226.is_init = ina226_init(I2C_CONTROLLER_0);
-            // ESP_LOGI(TAG, "var.ina226.is_init = %" PRId16, (int)var.ina226.is_init);
-        }
-    }   
-
-}
-//==============================================================================================================
-
-bool process_keyword(char *rx_buf, const char *keyword, int *value) {
-    bool result = 0;
-    char *keyword_ptr = strstr(rx_buf, keyword);
-    if (keyword_ptr != NULL) {
-        keyword_ptr += strlen(keyword); // Переходим за ключевое слово
-
-        // Пропускаем пробелы и недопустимые символы
-        while (*keyword_ptr != '\0' && !isdigit((unsigned char)*keyword_ptr)) {
-            keyword_ptr++;
-        }
-
-        if (*keyword_ptr != '\0') {
-            // Извлекаем целое значение после ключевого слова
-            *value = atoi(keyword_ptr);
-            ESP_LOGI(TAG, "________________________%s value: %d", keyword, *value);
-            result = 1;
-        }
-    }
-    return result;
-}
-//==============================================================================================================
-
-// Функция для добавления числа в строку и проверки заполненности
-int Add_Number_To_String(char *str, int number, const char *prefix, int *element_count, int max_elements) {
-    char number_str[12]; // Буфер для хранения строкового представления числа
-    sprintf(number_str, "%d%s", number, " "); // Конвертация числа в строку
-
-    // Добавляем префикс и число
-    strcat(str, prefix);
-    strcat(str, number_str);
-
-    // Увеличиваем счетчик количества элементов
-    (*element_count)++;
-
-    //ESP_LOGI(TAG, "Add data to string %d", number);
-
-    // Проверяем, достигли ли мы максимального количества элементов
-    if (*element_count >= max_elements) {
-        //ESP_LOGI(TAG, "Packet full");
-        return 1; // Строка заполнена        
-    }
-
-    return 0; // Строка еще не заполнена
-}
-//=================================================================================
-
-// Функция для добавления числа в строку и проверки заполненности
-int Add_Number_To_String_Float(char *str, float number_f, const char *prefix, int *element_count, int max_elements) {
-    char number_str[12]; // Буфер для хранения строкового представления числа
-    sprintf(number_str, "%.2f%s", number_f, " "); // Конвертация числа в строку
-
-    // Добавляем префикс и число
-    strcat(str, prefix);
-    strcat(str, number_str);
-
-    // Увеличиваем счетчик количества элементов
-    (*element_count)++;
-
-    //ESP_LOGI(TAG, "Add data to string %d", number);
-
-    // Проверяем, достигли ли мы максимального количества элементов
-    if (*element_count >= max_elements) {
-        //ESP_LOGI(TAG, "Packet full");
-        return 1; // Строка заполнена        
-    }
-
-    return 0; // Строка еще не заполнена
-}
-//=================================================================================
 

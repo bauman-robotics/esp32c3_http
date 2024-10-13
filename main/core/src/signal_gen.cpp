@@ -23,7 +23,6 @@ static SignalData signal_data = {0}; // Инициализировать дан�
 extern const char *TAG;
 
 int16_t calc_sine_post_data();
-int16_t calc_sine_uart_data();
 int16_t calc_sine_socket_data();
 float calc_sine_socket_data_float();
 int16_t calc_sawtooth_socket_data();
@@ -36,20 +35,6 @@ void Set_Header(SignalData* signalData);
 //===============================================================
 
 int16_t calc_sine_post_data()
-{
-    static uint32_t s_time = 0;
-
-    // Calculate the current time position in the cycle
-    float t = (float)(s_time % SIN_PERIOD_MS) / SIN_PERIOD_MS * 2 * M_PI;
-    int16_t sine_value = (int16_t)((sin(t) * (AMPLITUDE / 2)) + (AMPLITUDE / 2));
-
-    s_time += (SIN_PERIOD_MS / SIN_VALUES_COUNT); // Increment time
-
-    return sine_value;
-}
-//===============================================================
-
-int16_t calc_sine_uart_data()
 {
     static uint32_t s_time = 0;
 
@@ -248,13 +233,13 @@ void Generate_Signal(SignalData *signal_data) {
 
 void signal_gen_task(void *pvParameters) {
 
-   
+    //ESP_LOGI(TAG, "signal_gen_task  create()");
     while (1) {
 
         if (var.leds.flags == LEDS_CONNECT_TO_SERVER_STATE) {
 
             Generate_Signal(&signal_data);
-            
+            //ESP_LOGI(TAG, "Generate_Signal");
             // Отправка данных сигнала в очередь
             if (xQueueSend(xQueueSignalData, &signal_data, portMAX_DELAY)) {
                 //ESP_LOGI(TAG, "Signal data sent to Queue successfully!");
