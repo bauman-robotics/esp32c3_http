@@ -88,9 +88,9 @@ void echo_task(void *arg)
                         //=== Отправка пакета ====
                         //err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
 
-                        //int res;
-                        //res = esp_serial_jtag_write(var.packet.buf, sizeof(var.packet.buf));
-                        printf("%s\n", var.packet.buf);
+                        int res;
+                        res = usb_serial_jtag_write_bytes(var.packet.buf, strlen(var.packet.buf), 20 / portTICK_PERIOD_MS);
+                        //printf("%s\n", var.packet.buf);
                     }
                     else {
                         //err = send(sock, &signal_data, signal_data.header.full_packet_size, MSG_NOSIGNAL);      
@@ -98,6 +98,9 @@ void echo_task(void *arg)
                             //err = send(sock, &signal_data, signal_data.header_int.full_packet_size, MSG_NOSIGNAL); 
                             //printf("%s\n", signal_data);   
                         #else 
+
+                            usb_serial_jtag_write_bytes(&signal_data, signal_data.header_float.full_packet_size, 20 / portTICK_PERIOD_MS);
+
                             //err = send(sock, &signal_data, signal_data.header_float.full_packet_size, MSG_NOSIGNAL);  
                             //printf("%s\n", signal_data); 
                         #endif              
