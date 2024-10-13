@@ -39,6 +39,7 @@
 //#define BINARY_PACKET_FLOAT_KEY (2233)
 #define BINARY_PACKET_FLOAT_KEY (5678)
 
+
 //#define BINARY_PACKET 
 #define DATA_TYPE_FLOAT 
 
