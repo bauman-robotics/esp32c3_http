@@ -29,7 +29,7 @@ void Pars_Cmd(char *rx_buf) {
  
 
     // Определение вариантов соответствия
-    const char *options[] = {"Red", "Green", "Blue", "Current", "Power", "HEX", "ASCII"};
+    const char *options[] = {"Saw", "Sin", "Voltage", "Current", "Power", "HEX", "ASCII"};
     int count = sizeof(options) / sizeof(options[0]);
     // Анализ строки и установка флагов
 
@@ -41,27 +41,27 @@ void Pars_Cmd(char *rx_buf) {
         if (strcasestr(rx_buf, options[i]) != NULL) {          
             switch (i) {
                 case 0:
-                    ESP_LOGI(TAG, "________________________Red");
+                    ESP_LOGI(TAG, "________________________Saw");
 
-                    var.leds.red   = 1;
-                    var.leds.green = 0;
-                    var.leds.blue  = 0;
+                    var.mode.saw   = 1;
+                    var.mode.sin   = 0;
+                    var.mode.ina226  = 0;
                     break;
                 //=====================    
                 case 1:
-                    ESP_LOGI(TAG, "________________________Green");
+                    ESP_LOGI(TAG, "________________________Sin");
 
-                    var.leds.red   = 0;
-                    var.leds.green = 1;
-                    var.leds.blue  = 0;
+                    var.mode.saw   = 0;
+                    var.mode.sin   = 1;
+                    var.mode.ina226  = 0;
                     break;
                 //===================== 
                 case 2:
-                    ESP_LOGI(TAG, "________________________Blue");
+                    ESP_LOGI(TAG, "________________________Voltage");
 
-                    var.leds.red   = 0;
-                    var.leds.green = 0;
-                    var.leds.blue  = 1;   
+                    var.mode.saw  = 0;
+                    var.mode.sin  = 0;
+                    var.mode.ina226  = 1;   
                     var.ina226.get_voltage = 1;
                     var.ina226.get_current = 0;
                     var.ina226.get_power   = 0;   
@@ -70,9 +70,9 @@ void Pars_Cmd(char *rx_buf) {
                 case 3:
                     ESP_LOGI(TAG, "________________________Current");
 
-                    var.leds.red   = 0;
-                    var.leds.green = 0;
-                    var.leds.blue  = 1;   
+                    var.mode.saw   = 0;
+                    var.mode.sin   = 0;
+                    var.mode.ina226  = 1;   
 
                     var.ina226.get_voltage = 0;
                     var.ina226.get_current = 1;
@@ -83,9 +83,9 @@ void Pars_Cmd(char *rx_buf) {
                 case 4:
                     ESP_LOGI(TAG, "________________________Power");
 
-                    var.leds.red   = 0;
-                    var.leds.green = 0;
-                    var.leds.blue  = 1;   
+                    var.mode.saw   = 0;
+                    var.mode.sin   = 0;
+                    var.mode.ina226  = 1;   
 
                     var.ina226.get_voltage = 0;
                     var.ina226.get_current = 0;

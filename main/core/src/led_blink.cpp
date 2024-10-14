@@ -48,11 +48,11 @@ void ledc_init_C3(void);
 
 void configure_led(void)
 {    
-    var.leds.red = 1;
-    var.leds.green = 0; 
-    var.leds.blue = 0;
+    var.mode.saw = 1;
+    var.mode.sin = 0; 
+    var.mode.ina226 = 0;
 
-    var.leds.flags = LEDS_NO_CONNECT_STATE;
+    var.mode.flags = LEDS_NO_CONNECT_STATE;
 
     ESP_LOGI(TAG, "Example configured to blink addressable LED!");
     /* LED strip initialization with the GPIO and pixels number */
@@ -97,7 +97,7 @@ void blink_led(void)
         uint8_t green_value = 1;
         uint8_t blue_value = 0;
 
-        switch (var.leds.flags) {
+        switch (var.mode.flags) {
             case LEDS_NO_CONNECT_STATE:
 
                 red_value = MAX_BRIGHTNESS;
@@ -113,9 +113,9 @@ void blink_led(void)
                 break;
             case LEDS_CONNECT_TO_SERVER_STATE:
                 // Умножаем булевые значения на r и преобразуем в uint8_t
-                red_value   = (uint8_t)(var.leds.red   * r);
-                green_value = (uint8_t)(var.leds.green * r);
-                blue_value  = (uint8_t)(var.leds.blue  * r);
+                red_value   = (uint8_t)(var.mode.saw   * r);
+                green_value = (uint8_t)(var.mode.sin * r);
+                blue_value  = (uint8_t)(var.mode.ina226  * r);
 
                 break; 
         }
@@ -136,11 +136,11 @@ void blink_led(void)
 
 void configure_led_C3(void)
 {    
-    var.leds.red = 1;
-    var.leds.green = 0; 
-    var.leds.blue = 0;
+    var.mode.saw = 1;
+    var.mode.sin = 0; 
+    var.mode.ina226 = 0;
 
-    var.leds.flags = LEDS_NO_CONNECT_STATE;
+    var.mode.flags = LEDS_NO_CONNECT_STATE;
 
     /* Настроить GPIO на вывод */
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -155,23 +155,23 @@ void blink_led_C3(void)
     static uint32_t counter = 0;
     static int period = 0;
 
-    if (var.leds.flags == LEDS_NO_CONNECT_STATE) {
+    if (var.mode.flags == LEDS_NO_CONNECT_STATE) {
             
        led_on_C3();
 
     } else {
 
-        if (var.leds.flags == LEDS_GOT_IP_STATE) {
+        if (var.mode.flags == LEDS_GOT_IP_STATE) {
             period = 200;
-        } else if (var.leds.flags == LEDS_CONNECT_TO_SERVER_STATE) {
-            if (var.leds.red) {
+        } else if (var.mode.flags == LEDS_CONNECT_TO_SERVER_STATE) {
+            if (var.mode.saw) {
                 period = 2000;
             } 
-            else if (var.leds.green) {
+            else if (var.mode.sin) {
                 period = 500;
 
             }
-            else if (var.leds.blue) { 
+            else if (var.mode.ina226) { 
                 period = 1000;
             }
         }

@@ -61,7 +61,7 @@ void socket_task(void *pvParameters) {
         //int sock = socket(addr_family, SOCK_DGRAM, ip_protocol);
         
         if (sock < 0) {
-            var.leds.flags = LEDS_GOT_IP_STATE;            
+            var.mode.flags = LEDS_GOT_IP_STATE;            
             ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
             vTaskDelay(5000 / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
             continue;  // Продолжить цикл, чтобы попытаться снова
@@ -71,18 +71,18 @@ void socket_task(void *pvParameters) {
         int err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
         if (err != 0) {
             ESP_LOGE(TAG, "Socket unable to connect: errno %d", errno);
-            var.leds.flags = LEDS_GOT_IP_STATE;            
+            var.mode.flags = LEDS_GOT_IP_STATE;            
             close(sock);  // Закрыть сокет перед повторной попыткой
             vTaskDelay(5000 / portTICK_PERIOD_MS);  // Подождать перед повторной попыткой
             continue;  // Продолжить цикл
         }
         ESP_LOGI(TAG, "Successfully connected");
 
-        var.leds.flags = LEDS_CONNECT_TO_SERVER_STATE;
+        var.mode.flags = LEDS_CONNECT_TO_SERVER_STATE;
 
-        var.leds.red   = 0;
-        var.leds.green = 1;
-        var.leds.blue  = 0;
+        var.mode.saw   = 0;
+        var.mode.sin   = 1;
+        var.mode.ina226  = 0;
 
         while (1) {            
             

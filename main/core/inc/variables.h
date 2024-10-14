@@ -31,9 +31,9 @@ typedef struct {
  } SignalData;
 //======================================================================
 typedef struct {
-    bool red;
-    bool green;
-    bool blue;
+    bool saw;
+    bool sin;
+    bool ina226;
     uint8_t flags;
 } Led_Type;
 //======================================================================
@@ -89,7 +89,7 @@ typedef struct {
 //======================================================================
 
 typedef struct {   
-    Led_Type leds;
+    Led_Type mode;
     int signal_period;  // send period 
     int count_vals_in_packet;      
     packet_type packet;

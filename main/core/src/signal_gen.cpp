@@ -138,7 +138,7 @@ void Generate_Signal(SignalData *signal_data) {
     static uint64_t old_timer_period_mks = timer_period_mks;    
     
 
-    if (var.leds.green) {
+    if (var.mode.sin) {
         for (int i = 0; i < var.count_vals_in_packet; i++) {
 
             #ifndef DATA_TYPE_FLOAT     
@@ -147,7 +147,7 @@ void Generate_Signal(SignalData *signal_data) {
                 signal_data->data_f[i] = calc_sine_socket_data_float();          
             #endif
         }
-    } else if (var.leds.red) {
+    } else if (var.mode.saw) {
         for (int i = 0; i < var.count_vals_in_packet; i++) {
 
             #ifndef DATA_TYPE_FLOAT     
@@ -156,7 +156,7 @@ void Generate_Signal(SignalData *signal_data) {
                 signal_data->data_f[i] = calc_sawtooth_socket_data_float();          
             #endif            
         }
-    } else if (var.leds.blue) {  // Voltage, Current, Power 
+    } else if (var.mode.ina226) {  // Voltage, Current, Power 
 
         if (var.ina226.is_init) {
 
@@ -236,7 +236,7 @@ void signal_gen_task(void *pvParameters) {
     //ESP_LOGI(TAG, "signal_gen_task  create()");
     while (1) {
 
-        if (var.leds.flags == LEDS_CONNECT_TO_SERVER_STATE) {
+        if (var.mode.flags == LEDS_CONNECT_TO_SERVER_STATE) {
 
             Generate_Signal(&signal_data);
             //ESP_LOGI(TAG, "Generate_Signal");
@@ -258,7 +258,7 @@ void signal_gen_task(void *pvParameters) {
         }
 
         int delay_ms = var.signal_period;
-        if (!var.leds.blue) {            
+        if (!var.mode.ina226) {            
             delay_ms = var.signal_period;        
         } else {
             delay_ms = 0;
