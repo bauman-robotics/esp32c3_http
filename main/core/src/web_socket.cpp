@@ -80,9 +80,13 @@ void socket_task(void *pvParameters) {
 
         var.mode.flags = LEDS_CONNECT_TO_SERVER_STATE;
 
-        var.mode.saw   = 0;
-        var.mode.sin   = 1;
-        var.mode.ina226  = 0;
+        var.mode.saw     = 0;
+        var.mode.sin     = 0;
+        var.mode.ina226  = 1;
+
+        var.ina226.get_voltage = 0;
+        var.ina226.get_current = 1;
+        var.ina226.get_power   = 0;  
 
         while (1) {            
             

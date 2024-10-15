@@ -17,6 +17,7 @@
 #define BUF_SIZE (1024)
 
 static const char *TAG = "uart";
+static bool usb_serial_jtag_driver_install_is_init = 0;
 
 
 void usb_serial_jtag_task(void *arg)
@@ -24,31 +25,43 @@ void usb_serial_jtag_task(void *arg)
 
     usb_serial_jtag_driver_config_t usb_serial_jtag_config;
     usb_serial_jtag_config.rx_buffer_size = BUF_SIZE;
-    usb_serial_jtag_config.tx_buffer_size = BUF_SIZE;    
+    usb_serial_jtag_config.tx_buffer_size = BUF_SIZE;
+        
 
-    ESP_ERROR_CHECK(usb_serial_jtag_driver_install(&usb_serial_jtag_config));
-    ESP_LOGI("usb_serial_jtag echo", "USB_SERIAL_JTAG init done");
+    if (!usb_serial_jtag_driver_install_is_init) {
+        ESP_ERROR_CHECK(usb_serial_jtag_driver_install(&usb_serial_jtag_config));
+        ESP_LOGI("usb_serial_jtag", "USB_SERIAL_JTAG init done");
+        usb_serial_jtag_driver_install_is_init = 1;
+    }
 
     // Configure a temporary buffer for the incoming data
     //uint8_t *data = (uint8_t *) malloc(BUF_SIZE);  // not work  correctly Pars_Cmd(data);     
     char *data = (char *) malloc(BUF_SIZE);    
     if (data == NULL) {
-        ESP_LOGE("usb_serial_jtag echo", "no memory for data");
+        ESP_LOGE("usb_serial_jtag_task", "no memory for data");
         return;
     }
 
+    var.mode.saw     = 0;
+    var.mode.sin     = 0;
+    var.mode.ina226  = 1;
+
+    var.ina226.get_voltage = 0;
+    var.ina226.get_current = 1;
+    var.ina226.get_power   = 0;  
+
     while (1) {
 
-        int num = usb_serial_jtag_read_bytes(data, (BUF_SIZE - 1), 20 / portTICK_PERIOD_MS);
+        // int num = usb_serial_jtag_read_bytes(data, (BUF_SIZE - 1), 20 / portTICK_PERIOD_MS);
 
-        //=== Пробуем получить конфигурационные данные =========================
-        if (num > 0) {
-            // Обработка входящих данных
-            data[num] = '\0';  // Завершающий символ строки
+        // //=== Пробуем получить конфигурационные данные =========================
+        // if (num > 0) {
+        //     // Обработка входящих данных
+        //     data[num] = '\0';  // Завершающий символ строки
 
-            Pars_Cmd(data);               
-            //ESP_LOGI(TAG, "_____________________________________Received %d bytes from server: %s", num, data);        
-        }
+        //     Pars_Cmd(data);               
+        //     //ESP_LOGI(TAG, "_____________________________________Received %d bytes from server: %s", num, data);        
+        // }
         //======================================================================
 
         //=== Генерация данных для отправки ====================================
@@ -87,8 +100,7 @@ void usb_serial_jtag_task(void *arg)
                         //=== Отправка пакета ====
                         //err = send(sock, var.packet.buf, strlen(var.packet.buf), MSG_NOSIGNAL); 
 
-                        int res;
-                        res = usb_serial_jtag_write_bytes(var.packet.buf, strlen(var.packet.buf), 20 / portTICK_PERIOD_MS);
+                        usb_serial_jtag_write_bytes(var.packet.buf, strlen(var.packet.buf), 1 / portTICK_PERIOD_MS);
                         //printf("%s\n", var.packet.buf);
                     }
                     else {
@@ -98,7 +110,7 @@ void usb_serial_jtag_task(void *arg)
                             //printf("%s\n", signal_data);   
                         #else 
 
-                            usb_serial_jtag_write_bytes(&signal_data, signal_data.header_float.full_packet_size, 20 / portTICK_PERIOD_MS);
+                            usb_serial_jtag_write_bytes(&signal_data, signal_data.header_float.full_packet_size, 1 / portTICK_PERIOD_MS);
 
                             //err = send(sock, &signal_data, signal_data.header_float.full_packet_size, MSG_NOSIGNAL);  
                             //printf("%s\n", signal_data); 
@@ -119,6 +131,23 @@ void usb_serial_jtag_task(void *arg)
                 } else {
                     ESP_LOGI(TAG, "Failed to receive signal data!");
                 }
+
+
+                // //======================================================================
+
+                int num = usb_serial_jtag_read_bytes(data, (BUF_SIZE - 1), 1 / portTICK_PERIOD_MS);
+
+                //=== Пробуем получить конфигурационные данные =========================
+                if (num > 0) {
+                    // Обработка входящих данных
+                    data[num] = '\0';  // Завершающий символ строки
+
+                    Pars_Cmd(data);               
+                    //ESP_LOGI(TAG, "_____________________________________Received %d bytes from server: %s", num, data);        
+                }
+                //======================================================================
+
+
             }
         } else {
             ESP_LOGI(TAG, "Failed to receive ready flag!");

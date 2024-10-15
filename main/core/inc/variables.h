@@ -80,11 +80,32 @@ typedef struct {
 
 //======================================================================
 typedef struct {
+    bool wifi_state;
+    bool serial_state;
+    bool post_request_state;    
+} need_state_t;
+
+//======================================================================
+typedef struct {
+    bool wifi;
+    bool serial;
+    bool post_request;    
+} state_t;
+
+//======================================================================
+typedef struct {
     int order_V;
     int order_I;
     int order_P;    
     bool enabled;
 } filter_t;
+//======================================================================
+typedef struct {
+    TaskHandle_t post_request_task;
+    TaskHandle_t socket_task;
+    TaskHandle_t serial_jtag_task;
+} Task_Handles_t;
+//======================================================================
 
 //======================================================================
 
@@ -97,6 +118,12 @@ typedef struct {
     Timer_t timer;
     //bool data_type_float; 
     filter_t filter;
+    Task_Handles_t handle;
+    bool wifi_is_init;
+    need_state_t need;
+    state_t state;
+
+    float last_val_for_post;
 } variables;
 
 extern variables var;

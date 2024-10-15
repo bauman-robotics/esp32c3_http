@@ -100,22 +100,36 @@ void blink_led(void)
         switch (var.mode.flags) {
             case LEDS_NO_CONNECT_STATE:
 
-                red_value = MAX_BRIGHTNESS;
-                green_value = 0;
-                blue_value = 0;
+                // red_value = MAX_BRIGHTNESS;
+                // green_value = 0;
+                // blue_value = 0;
+
+                r = MAX_BRIGHTNESS;
+                red_value   = (uint8_t)(var.state.serial        * r);
+                green_value = (uint8_t)(var.state.wifi          * r);
+                blue_value  = (uint8_t)(var.state.post_request  * r);
                 
                 break;
             case LEDS_GOT_IP_STATE:
-                red_value = 0;
-                green_value = MAX_BRIGHTNESS;
-                blue_value = 0;
+                // red_value = 0;
+                // green_value = MAX_BRIGHTNESS;
+                // blue_value = 0;
+
+                r = MAX_BRIGHTNESS;
+                red_value   = (uint8_t)(var.state.serial        * r);
+                green_value = (uint8_t)(var.state.wifi          * r);
+                blue_value  = (uint8_t)(var.state.post_request  * r);                
 
                 break;
             case LEDS_CONNECT_TO_SERVER_STATE:
                 // Умножаем булевые значения на r и преобразуем в uint8_t
-                red_value   = (uint8_t)(var.mode.saw   * r);
-                green_value = (uint8_t)(var.mode.sin * r);
-                blue_value  = (uint8_t)(var.mode.ina226  * r);
+                // red_value   = (uint8_t)(var.mode.saw   * r);
+                // green_value = (uint8_t)(var.mode.sin * r);
+                // blue_value  = (uint8_t)(var.mode.ina226  * r);
+
+                red_value   = (uint8_t)(var.state.serial        * r);
+                green_value = (uint8_t)(var.state.wifi          * r);
+                blue_value  = (uint8_t)(var.state.post_request  * r);
 
                 break; 
         }

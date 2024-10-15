@@ -209,6 +209,7 @@ void Generate_Signal(SignalData *signal_data) {
                     index++; // Увеличиваем индекс только при валидном напряжении                        
                 }
 
+                var.last_val_for_post = value;
                 // Убедитесь, что index не превышает размер массива
                 if (index >= var.count_vals_in_packet) {
                     break; // Выходим из цикла, если массив заполнен

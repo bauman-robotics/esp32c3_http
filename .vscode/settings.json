@@ -13,5 +13,9 @@
     "idf.port": "/dev/ttyACM0",
     "idf.pythonBinPath": "/home/ypc/esp/tools/python_env/idf5.4_py3.12_env/bin/python",
     "idf.toolsPath": "/home/ypc/esp/tools",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "files.associations": {
+        "cstdlib": "cpp",
+        "clk_ctrl_os.h": "c"
+    }
 }

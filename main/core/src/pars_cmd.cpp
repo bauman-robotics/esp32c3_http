@@ -6,7 +6,9 @@
 
 #include <netdb.h>  // isdigit()
 #include "variables.h"
-
+#include "web_socket.h"
+#include "http_func.h"
+#include "uart.h"
 
 static const char *TAG = "ex";
 
@@ -29,7 +31,7 @@ void Pars_Cmd(char *rx_buf) {
  
 
     // Определение вариантов соответствия
-    const char *options[] = {"Saw", "Sin", "Voltage", "Current", "Power", "HEX", "ASCII"};
+    const char *options[] = {"Saw", "Sin", "Voltage", "Current", "Power", "HEX", "ASCII", "Serial", "Wifi", "Post", "Default"};
     int count = sizeof(options) / sizeof(options[0]);
     // Анализ строки и установка флагов
 
@@ -106,11 +108,38 @@ void Pars_Cmd(char *rx_buf) {
                     var.packet.type_hex = 0;
 
                     break;  
-                   // for de        
-                // default:
-                //     ESP_LOGI(TAG, "__------------ Not Responced:%s", rx_buf);
 
-                //     break;                                                      
+                //===================== 
+                case 7:
+                    ESP_LOGI(TAG, "________________________Serial");
+
+                    var.need.serial_state = 1;
+
+                    break;  
+                //===================== 
+                case 8:
+                    ESP_LOGI(TAG, "________________________Wifi");
+
+                    var.need.wifi_state = 1;
+
+
+                    break;  
+                //===================== 
+                case 9:
+                    ESP_LOGI(TAG, "________________________Post");
+
+                    var.need.post_request_state = 1;
+
+                    break;                                                              
+                 //===================== 
+                case 10:
+                    ESP_LOGI(TAG, "________________________Default");
+
+
+
+                    break;                                                     
+
+                                                    
             }
         }
     }

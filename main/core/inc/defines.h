@@ -11,7 +11,7 @@
 //=== T-me Params =================
 #define UART_SIN_SEND_PERIOD_MS  (10)
 #define POST_REQUEST_PERIOD_MS (3000)
-#define SOCKET_SEND_PERIOD_MS   (100)  // socket and echo 
+#define SOCKET_SEND_PERIOD_MS    (20)  // socket and echo 
 //=========================================
 
 //=== Выберите целевой сервер ===
@@ -67,10 +67,11 @@ const float      INA226_LSB_mkA            = INA226_LSB_mA * 1000;  // not used
 const uint16_t   INA226_CALIBRATION_VAL    = (uint16_t)( 5.12 / (INA226_LSB_mA  * INA226_R_SHUNT_Om));  // not used
 //==============
 
-//#define GET_CURRENT_DEFAULT
+#define GET_CURRENT_DEFAULT
 
 #define FILTER_V_I_P_ENABLE 
 #define FILTER_ORDER_V (100)
 #define FILTER_ORDER_I (100)
 #define FILTER_ORDER_P (100)
 
+#define BUTTON_ENABLE

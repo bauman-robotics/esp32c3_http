@@ -14,6 +14,7 @@ idf_component_register(
        "core/src/uart.cpp"     
        "core/src/pars_cmd.cpp" 
        "core/src/make_data_str.cpp"               
+       "core/src/button.cpp"          
     INCLUDE_DIRS 
         "core/inc"
 )

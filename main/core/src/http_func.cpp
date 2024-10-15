@@ -104,17 +104,17 @@ void send_post_request(int16_t cold, int16_t hot, int16_t alarm_interval) {
     snprintf(post_data, sizeof(post_data), "api_key=%s&user_id=%s&user_location=%s&cold=%d&hot=%d&alarm_time=%d", 
              apiKeyValue.c_str(), user_id.c_str(), user_location.c_str(), cold, hot, alarm_interval);
 
-    ESP_LOGI(TAG, "Sending HTTP POST request to %s", serverName);
-    ESP_LOGI(TAG, "POST data: %s", post_data);
+    //ESP_LOGI(TAG, "Sending HTTP POST request to %s", serverName);
+    //ESP_LOGI(TAG, "POST data: %s", post_data);
 
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_post_field(client, post_data, strlen(post_data));
     err = esp_http_client_perform(client);
 
     if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
-                 esp_http_client_get_status_code(client),
-                 (long long int)esp_http_client_get_content_length(client));
+        // ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
+        //          esp_http_client_get_status_code(client),
+        //          (long long int)esp_http_client_get_content_length(client));
     } else {
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
@@ -150,48 +150,6 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
 }
 //=====================================================================================
 
-// void wifi_init_sta(void) {
-//     s_wifi_event_group = xEventGroupCreate();
-
-//     ESP_ERROR_CHECK(esp_netif_init());
-//     ESP_ERROR_CHECK(esp_event_loop_create_default());
-//     esp_netif_create_default_wifi_sta();
-
-//     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-//     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-//     esp_event_handler_instance_t instance_any_id;
-//     esp_event_handler_instance_t instance_got_ip;
-//     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL, &instance_any_id));
-//     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL, &instance_got_ip));
-
-//     wifi_config_t wifi_config;
-//     memset(&wifi_config, 0, sizeof(wifi_config)); // Обнуление структуры
-//     strcpy(reinterpret_cast<char*>(wifi_config.sta.ssid), SSID);
-//     strcpy(reinterpret_cast<char*>(wifi_config.sta.password), WIFI_PAS);
-//     wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
-
-//     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-//     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config)); // Исправлено: WIFI_IF_STA вместо ESP_IF_WIFI_STA
-//     ESP_ERROR_CHECK(esp_wifi_start());
-
-//     ESP_LOGI(TAG, "wifi_init_sta finished.");
-
-//     EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT | WIFI_FAIL_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-
-//     if (bits & WIFI_CONNECTED_BIT) {
-//         ESP_LOGI(TAG, "connected to ap SSID:%s password:%s", wifi_config.sta.ssid, wifi_config.sta.password);
-//     } else if (bits & WIFI_FAIL_BIT) {
-//         ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s", wifi_config.sta.ssid, wifi_config.sta.password);
-//     } else {
-//         ESP_LOGE(TAG, "UNEXPECTED EVENT");
-//     }
-
-//     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
-//     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
-//     vEventGroupDelete(s_wifi_event_group);
-// }
-
 void wifi_init_sta(void)
 {
     s_wifi_event_group = xEventGroupCreate();
@@ -226,6 +184,7 @@ void wifi_init_sta(void)
 
     if (bits & WIFI_CONNECTED_BIT) {
         ESP_LOGI(TAG, "connected to ap SSID:%s", wifi_config.sta.ssid);
+        var.wifi_is_init = 1; 
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s", wifi_config.sta.ssid);
     } else {
@@ -235,7 +194,7 @@ void wifi_init_sta(void)
      // Освобождаем ресурсы только после успешного подключения или ошибки
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
-    vEventGroupDelete(s_wifi_event_group);
+    vEventGroupDelete(s_wifi_event_group);    
 }
 //=====================================================================================
 
